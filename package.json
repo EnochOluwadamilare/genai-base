@@ -1,5 +1,5 @@
 {
-  "name": "@genai/base",
+  "name": "@knicos/genai-base",
   "version": "0.0.1",
   "type": "module",
   "main": "dist/genai-base.js",
