@@ -1,10 +1,11 @@
 {
-  "name": "genai-base",
+  "name": "@genai/base",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "main": "dist/genai-base.js",
   "types": "dist/main.d.ts",
+  "repository": "https://github.com/knicos/genai-base.git",
   "files": [
     "dist"
   ],
