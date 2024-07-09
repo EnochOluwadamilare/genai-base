@@ -12,13 +12,13 @@ export interface CommunicationRelayConfiguration {
     iceServers: CommunicationIceServer[];
 }
 
-export function getRTConfig(resolve: (value: CommunicationRelayConfiguration) => void) {
-    fetch(`${import.meta.env.VITE_APP_APIURL}/rtcconfig?appName=somekone`)
+export function getRTConfig(api: string, appName: string, resolve: (value: CommunicationRelayConfiguration) => void) {
+    fetch(`${api}/rtcconfig?appName=${appName}`)
         .then((response) => {
             if (response.ok) response.json().then(resolve);
-            else setTimeout(() => getRTConfig(resolve), 1000);
+            else setTimeout(() => getRTConfig(api, appName, resolve), 1000);
         })
         .catch(() => {
-            setTimeout(() => getRTConfig(resolve), 1000);
+            setTimeout(() => getRTConfig(api, appName, resolve), 1000);
         });
 }

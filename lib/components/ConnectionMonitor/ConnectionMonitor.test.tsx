@@ -31,7 +31,7 @@ describe('Connection Monitor Component', () => {
                     set(webrtcActive, 'full');
                 }}
             >
-                <ConnectionMonitor ready={false} />
+                <ConnectionMonitor api="something" appName="test" ready={false} />
             </TestWrapper>
         );
 
@@ -48,7 +48,7 @@ describe('Connection Monitor Component', () => {
                     set(iceConfig, { expiresOn: new Date(), iceServers: [] });
                 }}
             >
-                <ConnectionMonitor ready={false} />
+                <ConnectionMonitor api="something" appName="test" ready={false} />
             </TestWrapper>
         );
 
@@ -64,6 +64,7 @@ describe('Connection Monitor Component', () => {
                 }}
             >
                 <ConnectionMonitor
+                api="something" appName="test"
                     ready={false}
                     status={'connecting'}
                 />
@@ -82,6 +83,7 @@ describe('Connection Monitor Component', () => {
                 }}
             >
                 <ConnectionMonitor
+                api="something" appName="test"
                     ready={false}
                     status={'failed'}
                     error="peer-not-found"

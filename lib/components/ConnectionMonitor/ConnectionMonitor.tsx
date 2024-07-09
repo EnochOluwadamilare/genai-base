@@ -9,12 +9,14 @@ import { PeerErrorType, PeerStatus } from '../../hooks/peer';
 import ProgressDialog from './ProgressDialog';
 
 interface Props {
+    api: string;
+    appName: string;
     ready?: boolean;
     status?: PeerStatus;
     error?: PeerErrorType;
 }
 
-export default function ConnectionMonitor({ ready, status, error }: Props) {
+export default function ConnectionMonitor({ api, appName, ready, status, error }: Props) {
     const [ice, setIce] = useRecoilState(iceConfig);
     const [webrtc, setWebRTC] = useRecoilState(webrtcActive);
     const streamRef = useRef<MediaStream | undefined>();
@@ -22,11 +24,11 @@ export default function ConnectionMonitor({ ready, status, error }: Props) {
     // Get ICE servers
     useEffect(() => {
         if (!ice) {
-            getRTConfig((data) => {
+            getRTConfig(api, appName, (data) => {
                 setIce(data);
             });
         }
-    }, [ice, setIce]);
+    }, [ice, setIce, api, appName]);
 
     // Get permissions for webRTC
     useEffect(() => {
