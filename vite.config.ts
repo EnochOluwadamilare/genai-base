@@ -20,7 +20,7 @@ export default defineConfig({
     },
 },
   build: {
-    copyPublicDir: false,
+    copyPublicDir: true,
     rollupOptions: {
         external: ['react', 'react-dom', 'react/jsx-runtime', '@mui/material', '@emotion/react', '@emotion/styled', 'react-i18next', 'recoil'],
         output: {

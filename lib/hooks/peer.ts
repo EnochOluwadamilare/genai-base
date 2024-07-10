@@ -41,6 +41,10 @@ interface Callbacks<T> {
 interface Props<T> extends Callbacks<T> {
     code?: string;
     server?: string;
+    host: string;
+    secure?: boolean;
+    key?: string;
+    port?: number;
 }
 
 export type PeerProps<T> = Props<T>;
@@ -94,6 +98,10 @@ interface PeerReturn<T> {
 export default function usePeer<T extends PeerEvent>({
     code,
     server,
+    host,
+    secure,
+    port,
+    key,
     onOpen,
     onClose,
     onError,
@@ -146,10 +154,10 @@ export default function usePeer<T extends PeerEvent>({
         setStatus('connecting');
 
         const npeer = new P2P(code, {
-            host: import.meta.env.VITE_APP_PEER_SERVER,
-            secure: import.meta.env.VITE_APP_PEER_SECURE === '1',
-            key: import.meta.env.VITE_APP_PEER_KEY || 'peerjs',
-            port: import.meta.env.VITE_APP_PEER_PORT ? parseInt(import.meta.env.VITE_APP_PEER_PORT) : 443,
+            host,
+            secure,
+            key: key || 'peerjs',
+            port: port || 443,
             debug: 0,
             config: {
                 iceServers: [ice.iceServers[0]],
