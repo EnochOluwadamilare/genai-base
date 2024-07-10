@@ -113,8 +113,8 @@ stages:
                 - script: |
                       echo -e "\n//npm.pkg.github.com/:_authToken=$(GITHUB_TOKEN)" >> ./.npmrc
                       npm ci
-                      echo $(BUILD_SOURCEBRANCHNAME)
-                      npm version $(BUILD_SOURCEBRANCHNAME)
+                      echo version${BUILD_SOURCEBRANCHNAME}
+                      npm version ${BUILD_SOURCEBRANCHNAME}
                       npm publish
           #- job: Github
           #  displayName: Github Mirror
