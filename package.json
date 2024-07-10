@@ -20,8 +20,7 @@
         "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
         "preview": "vite preview",
         "test": "vitest",
-        "ci:test": "vitest --coverage --reporter=junit --outputFile=junit.xml",
-        "prepublish": "npm run build"
+        "ci:test": "vitest --coverage --reporter=junit --outputFile=junit.xml"
     },
     "peerDependencies": {
         "@emotion/react": "^11.11.4",
