@@ -1,5 +1,5 @@
 import { createTheme } from '@mui/material/styles';
-import colours from './colours.module.css';
+import colours from '@public/colours.module.css';
 
 const isTest = globalThis?.process?.env?.NODE_ENV === 'test';
 
