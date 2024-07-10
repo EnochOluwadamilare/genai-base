@@ -13,3 +13,4 @@ export { default as Spinner } from './components/Spinner/Spinner';
 export { default as Privacy } from './components/Privacy/Privacy';
 export { default as BusyButton } from './components/BusyButton/BusyButton';
 export { default as AlertPara } from './components/AlertPara/AlertPara';
+export { default as QRCode } from './components/QRCode/QRCode';
