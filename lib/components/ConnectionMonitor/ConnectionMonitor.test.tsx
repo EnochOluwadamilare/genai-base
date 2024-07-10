@@ -1,7 +1,7 @@
 import { beforeEach, describe, it, vi } from 'vitest';
 import ConnectionMonitor from './ConnectionMonitor';
 import TestWrapper from '../../util/TestWrapper';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { iceConfig, webrtcActive } from '../../state/webrtcState';
 
 const { mockGetRTConfig, mockGetUserMedia } = vi.hoisted(() => ({
@@ -31,7 +31,11 @@ describe('Connection Monitor Component', () => {
                     set(webrtcActive, 'full');
                 }}
             >
-                <ConnectionMonitor api="something" appName="test" ready={false} />
+                <ConnectionMonitor
+                    api="something"
+                    appName="test"
+                    ready={false}
+                />
             </TestWrapper>
         );
 
@@ -48,11 +52,17 @@ describe('Connection Monitor Component', () => {
                     set(iceConfig, { expiresOn: new Date(), iceServers: [] });
                 }}
             >
-                <ConnectionMonitor api="something" appName="test" ready={false} />
+                <ConnectionMonitor
+                    api="something"
+                    appName="test"
+                    ready={false}
+                />
             </TestWrapper>
         );
 
-        expect(mockGetUserMedia).toHaveBeenCalledOnce();
+        waitFor(() => {
+            expect(mockGetUserMedia).toHaveBeenCalledOnce();
+        });
     });
 
     it('displays a progress dialog', async ({ expect }) => {
@@ -64,7 +74,8 @@ describe('Connection Monitor Component', () => {
                 }}
             >
                 <ConnectionMonitor
-                api="something" appName="test"
+                    api="something"
+                    appName="test"
                     ready={false}
                     status={'connecting'}
                 />
@@ -83,7 +94,8 @@ describe('Connection Monitor Component', () => {
                 }}
             >
                 <ConnectionMonitor
-                api="something" appName="test"
+                    api="something"
+                    appName="test"
                     ready={false}
                     status={'failed'}
                     error="peer-not-found"

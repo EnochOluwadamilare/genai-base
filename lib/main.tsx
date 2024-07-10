@@ -8,3 +8,8 @@ export { default as useRandom } from './hooks/random';
 export { theme } from './style/theme';
 export { default as randomId } from './util/randomId';
 export { default as TestWrapper } from './util/TestWrapper';
+export { useTabActive } from './hooks/useTabActive';
+export { default as Spinner } from './components/Spinner/Spinner';
+export { default as Privacy } from './components/Privacy/Privacy';
+export { default as BusyButton } from './components/BusyButton/BusyButton';
+export { default as AlertPara } from './components/AlertPara/AlertPara';

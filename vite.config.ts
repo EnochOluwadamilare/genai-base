@@ -37,6 +37,7 @@ export default defineConfig({
                 'react-dom',
                 'react/jsx-runtime',
                 '@mui/material',
+                '@mui/icons-material',
                 '@emotion/react',
                 '@emotion/styled',
                 'react-i18next',
