@@ -421,7 +421,7 @@ export default function usePeer<T extends PeerEvent>({
             }
             npeer.destroy();
         };
-    }, [code, server, webrtc, ice, setError, trigger, setCandidate]);
+    }, [code, server, webrtc, ice, setError, trigger, setCandidate, host, key, port, secure]);
 
     useEffect(() => {
         const tabClose = () => {
