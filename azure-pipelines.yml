@@ -85,12 +85,10 @@ stages:
                   inputs:
                       testRunner: JUnit
                       testResultsFiles: '**/junit.xml'
-                - task: PublishCodeCoverageResults@1
+                - task: PublishCodeCoverageResults@2
                   inputs:
-                      codeCoverageTool: 'Cobertura'
                       summaryFileLocation: 'coverage/cobertura-coverage.xml'
-                      pathToSources: 'src'
-                      reportDirectory: 'coverage'
+                      pathToSources: 'lib'
 
     - stage: PublishProduction
       displayName: Publish
@@ -113,8 +111,7 @@ stages:
                 - script: |
                       echo -e "\n//npm.pkg.github.com/:_authToken=$(GITHUB_TOKEN)" >> ./.npmrc
                       npm ci
-                      echo version${BUILD_SOURCEBRANCHNAME}
-                      npm version ${BUILD_SOURCEBRANCHNAME}
+                      npm version --git-tag-version=false ${BUILD_SOURCEBRANCHNAME}
                       npm publish
           #- job: Github
           #  displayName: Github Mirror
