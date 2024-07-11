@@ -5,15 +5,20 @@ import { PeerStatus } from '../../hooks/peer';
 
 interface Props {
     status?: PeerStatus;
+    keepOpen?: boolean;
 }
 
-export default function ProgressDialog({ status }: Props) {
+export default function ProgressDialog({ status, keepOpen }: Props) {
     const { t } = useTranslation();
 
     return (
         <Dialog
             hideBackdrop
-            open={status !== 'starting' && status !== 'ready' && status !== 'failed'}
+            style={keepOpen ? { position: 'absolute' } : undefined}
+            disablePortal={keepOpen}
+            open={
+                (keepOpen && status === 'ready') || (status !== 'starting' && status !== 'ready' && status !== 'failed')
+            }
         >
             <DialogTitle className={style.title}>{t('loader.titles.connecting')}</DialogTitle>
             <DialogContent className={style.content}>{t(`loader.messages.${status || 'disconnected'}`)}</DialogContent>

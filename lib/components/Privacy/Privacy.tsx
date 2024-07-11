@@ -3,15 +3,24 @@ import { useTranslation } from 'react-i18next';
 import logo from './github-mark-white.svg';
 
 interface Props {
+    position?: 'bottomLeft' | 'topRight';
     tag: string;
     appName: string;
 }
 
-export default function Privacy({ tag, appName }: Props) {
+export default function Privacy({ tag, appName, position = 'bottomLeft' }: Props) {
     const { t } = useTranslation();
 
     return (
-        <section className={style.policy}>
+        <section className={`${style.policy} ${style[position]}`}>
+            {position === 'topRight' && (
+                <a
+                    href="/about"
+                    target="_blank"
+                >
+                    {t('about.privacyTitle')}
+                </a>
+            )}
             <div
                 aria-hidden
                 className={style.versionBox}
@@ -30,12 +39,14 @@ export default function Privacy({ tag, appName }: Props) {
                     />
                 </a>
             </div>
-            <a
-                href="/about"
-                target="_blank"
-            >
-                {t('about.privacyTitle')}
-            </a>
+            {position === 'bottomLeft' && (
+                <a
+                    href="/about"
+                    target="_blank"
+                >
+                    {t('about.privacyTitle')}
+                </a>
+            )}
         </section>
     );
 }
