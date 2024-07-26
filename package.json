@@ -20,6 +20,7 @@
         "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
         "preview": "vite preview",
         "test": "vitest",
+        "ladle": "npx ladle serve",
         "ci:test": "vitest --coverage --reporter=junit --outputFile=junit.xml"
     },
     "peerDependencies": {

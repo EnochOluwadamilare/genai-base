@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState, useReducer } from 'react';
 import { Peer as P2P, DataConnection, PeerError } from 'peerjs';
 import { iceConfig, webrtcActive, webrtcCandidate } from '../state/webrtcState';
-import { useRecoilValue, useSetRecoilState } from 'recoil';
+import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 
 // Peerjs sends every 5000ms
 // Assume server responds within 5s.
@@ -12,7 +12,15 @@ const MAX_BACKOFF = 4;
 const BASE_RETRY_TIME = 1000;
 const WAIT_TIME = 10000;
 
-export type PeerStatus = 'starting' | 'disconnected' | 'connecting' | 'failed' | 'signaling' | 'ready' | 'retry';
+export type PeerStatus =
+    | 'starting'
+    | 'disconnected'
+    | 'connecting'
+    | 'failed'
+    | 'signaling'
+    | 'ready'
+    | 'retry'
+    | 'inactive';
 export type PeerErrorType =
     | 'none'
     | 'id-in-use'
@@ -45,6 +53,7 @@ interface Props<T> extends Callbacks<T> {
     secure?: boolean;
     key?: string;
     port?: number;
+    disabled?: boolean;
 }
 
 export type PeerProps<T> = Props<T>;
@@ -102,6 +111,7 @@ export default function usePeer<T extends PeerEvent>({
     secure,
     port,
     key,
+    disabled,
     onOpen,
     onClose,
     onError,
@@ -117,7 +127,7 @@ export default function usePeer<T extends PeerEvent>({
         idRetryCount: 0,
     });
     const cbRef = useRef<Callbacks<T>>({});
-    const webrtc = useRecoilValue(webrtcActive);
+    const [webrtc, setWebRTC] = useRecoilState(webrtcActive);
     const ice = useRecoilValue(iceConfig);
     const [sender, setSender] = useState<SenderType<T>>();
     //const setError = useSetRecoilState(errorNotification);
@@ -139,7 +149,18 @@ export default function usePeer<T extends PeerEvent>({
     }
 
     useEffect(() => {
+        if (disabled) {
+            setStatus('inactive');
+            setWebRTC('disabled');
+            return;
+        } else {
+            setStatus('starting');
+        }
         if (webrtc === 'unset') return;
+        if (webrtc === 'disabled') {
+            setWebRTC('unset');
+            return;
+        }
         if (!code) return;
         if (!ice) {
             setTimeout(() => {
@@ -421,7 +442,7 @@ export default function usePeer<T extends PeerEvent>({
             }
             npeer.destroy();
         };
-    }, [code, server, webrtc, ice, setError, trigger, setCandidate, host, key, port, secure]);
+    }, [code, server, webrtc, ice, setError, trigger, setCandidate, host, key, port, secure, disabled, setWebRTC]);
 
     useEffect(() => {
         const tabClose = () => {

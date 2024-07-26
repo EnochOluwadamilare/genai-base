@@ -17,7 +17,8 @@ export default function ProgressDialog({ status, keepOpen }: Props) {
             style={keepOpen ? { position: 'absolute' } : undefined}
             disablePortal={keepOpen}
             open={
-                (keepOpen && status === 'ready') || (status !== 'starting' && status !== 'ready' && status !== 'failed')
+                (keepOpen && status === 'ready') ||
+                (status !== 'starting' && status !== 'ready' && status !== 'failed' && status !== 'inactive')
             }
         >
             <DialogTitle className={style.title}>{t('loader.titles.connecting')}</DialogTitle>

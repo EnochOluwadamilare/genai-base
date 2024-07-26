@@ -57,7 +57,7 @@ stages:
                   displayName: 'Build'
 
                 - publish: $(System.DefaultWorkingDirectory)/dist
-                  artifact: DistFolder
+                  artifact: dist
 
     - stage: Test
       dependsOn: Build
@@ -74,7 +74,7 @@ stages:
                       path: $(System.DefaultWorkingDirectory)/node_modules
                   displayName: Cache NPM packages
                 - download: current
-                  artifact: DistFolder
+                  artifact: dist
                 - script: |
                       npm ci
                       CI=true npm run ci:test
@@ -107,7 +107,7 @@ stages:
                       path: $(System.DefaultWorkingDirectory)/node_modules
                   displayName: Cache NPM packages
                 - download: current
-                  artifact: DistFolder
+                  artifact: dist
                 - script: |
                       echo -e "\n//npm.pkg.github.com/:_authToken=$(GITHUB_TOKEN)" >> ./.npmrc
                       npm ci

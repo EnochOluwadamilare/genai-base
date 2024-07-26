@@ -31,6 +31,12 @@ export default function ConnectionMonitor({ api, appName, ready, status, error, 
         }
     }, [ice, setIce, api, appName]);
 
+    useEffect(() => {
+        if (status === 'starting') {
+            setWebRTC('unset');
+        }
+    }, [status, setWebRTC]);
+
     // Get permissions for webRTC
     useEffect(() => {
         if (ice && webrtc === 'unset') {
@@ -54,7 +60,7 @@ export default function ConnectionMonitor({ api, appName, ready, status, error, 
             });
             streamRef.current = undefined;
         }
-    }, [ready]);
+    }, [ready, status]);
 
     return (
         <>
