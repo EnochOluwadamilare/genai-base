@@ -16,6 +16,7 @@ pool:
 
 stages:
     - stage: Static
+      condition: not(contains(variables['build.sourceBranch'], 'refs/tags/'))
       jobs:
           - job: ESLint
             displayName: ESLint
@@ -56,9 +57,6 @@ stages:
                       npm run build
                   displayName: 'Build'
 
-                - publish: $(System.DefaultWorkingDirectory)/dist
-                  artifact: dist
-
     - stage: Test
       dependsOn: Build
       jobs:
@@ -73,8 +71,6 @@ stages:
                           npm
                       path: $(System.DefaultWorkingDirectory)/node_modules
                   displayName: Cache NPM packages
-                - download: current
-                  artifact: dist
                 - script: |
                       npm ci
                       CI=true npm run ci:test
@@ -92,10 +88,7 @@ stages:
 
     - stage: PublishProduction
       displayName: Publish
-      dependsOn:
-          - Test
-          - Build
-      condition: and(succeeded(), contains(variables['build.sourceBranch'], 'refs/tags/'))
+      condition: contains(variables['build.sourceBranch'], 'refs/tags/')
       jobs:
           - job: Ubuntu_x64
             displayName: Publish Package Job
@@ -108,13 +101,11 @@ stages:
                           npm
                       path: $(System.DefaultWorkingDirectory)/node_modules
                   displayName: Cache NPM packages
-                - task: DownloadPipelineArtifact@2
-                  inputs:
-                      buildType: 'current'
-                      targetPath: '${System.DefaultWorkingDirectory}'
                 - script: |
                       echo -e "\n//npm.pkg.github.com/:_authToken=$(GITHUB_TOKEN)" >> ./.npmrc
                       npm ci
+                      npm install
+                      npm run build
                       npm version --git-tag-version=false ${BUILD_SOURCEBRANCHNAME}
                       npm publish
           #- job: Github
