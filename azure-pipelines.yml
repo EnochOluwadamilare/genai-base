@@ -92,7 +92,9 @@ stages:
 
     - stage: PublishProduction
       displayName: Publish
-      dependsOn: Test
+      dependsOn:
+          - Test
+          - Build
       condition: and(succeeded(), contains(variables['build.sourceBranch'], 'refs/tags/'))
       jobs:
           - job: Ubuntu_x64
