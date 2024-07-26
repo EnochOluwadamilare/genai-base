@@ -110,9 +110,8 @@ stages:
                   displayName: Cache NPM packages
                 - task: DownloadPipelineArtifact@2
                   inputs:
-                      buildType: current
-                      artifactName: dist
-                      targetPath: ${System.DefaultWorkingDirectory}
+                      buildType: 'current'
+                      targetPath: '${System.DefaultWorkingDirectory}'
                 - script: |
                       echo -e "\n//npm.pkg.github.com/:_authToken=$(GITHUB_TOKEN)" >> ./.npmrc
                       npm ci
