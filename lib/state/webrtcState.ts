@@ -17,3 +17,8 @@ export const webrtcCandidate = atom<'unset' | 'relay' | 'other'>({
     key: 'webrtccandidate',
     default: 'unset',
 });
+
+export const fatalWebcam = atom<boolean>({
+    key: 'fatalWebcam',
+    default: false,
+});

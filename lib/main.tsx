@@ -7,6 +7,15 @@ export { useOnlyOnce } from './hooks/onlyOnce';
 export { default as useRandom } from './hooks/random';
 export { theme } from './style/theme';
 export { default as randomId } from './util/randomId';
+export {
+    cropTo,
+    canvasFromFile,
+    canvasesFromFiles,
+    canvasFromImage,
+    canvasFromURL,
+    canvasFromDataTransfer,
+    urlFromDataTransfer,
+} from './util/canvas';
 export { default as TestWrapper } from './util/TestWrapper';
 export { useTabActive } from './hooks/useTabActive';
 export { default as Spinner } from './components/Spinner/Spinner';
@@ -14,3 +23,4 @@ export { default as Privacy } from './components/Privacy/Privacy';
 export { default as BusyButton } from './components/BusyButton/BusyButton';
 export { default as AlertPara } from './components/AlertPara/AlertPara';
 export { default as QRCode } from './components/QRCode/QRCode';
+export { default as Webcam } from './components/Webcam/Webcam';
