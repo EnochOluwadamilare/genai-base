@@ -1,16 +1,19 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState, KeyboardEvent, Suspense } from 'react';
 import qr from 'qrcode';
 import style from './style.module.css';
+import DialogQR from './DialogQR';
 
 interface Props {
     url: string;
     size?: 'small' | 'large' | 'normal';
     code?: string;
     label?: string;
+    dialog?: boolean;
 }
 
-export default function QRCode({ url, size, code, label }: Props) {
+export default function QRCode({ url, size, code, label, dialog }: Props) {
     const canvas = useRef<HTMLCanvasElement>(null);
+    const [open, setOpen] = useState(false);
 
     useEffect(() => {
         if (canvas.current) {
@@ -20,7 +23,31 @@ export default function QRCode({ url, size, code, label }: Props) {
         }
     }, [url, size]);
 
-    return (
+    return dialog ? (
+        <div className={style.container}>
+            <canvas
+                aria-label="QR code, click to expand it"
+                role="button"
+                width={164}
+                height={164}
+                ref={canvas}
+                onClick={() => setOpen(true)}
+                tabIndex={0}
+                className={style.canvas}
+                data-testid="qr-code-canvas"
+                onKeyDown={(e: KeyboardEvent) => {
+                    if (e.key === 'Enter') setOpen(true);
+                }}
+            />
+            <Suspense>
+                <DialogQR
+                    url={url}
+                    open={open}
+                    onClose={() => setOpen(false)}
+                />
+            </Suspense>
+        </div>
+    ) : (
         <a
             href={url}
             target="_blank"

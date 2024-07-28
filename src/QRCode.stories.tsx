@@ -27,3 +27,10 @@ export const Large: Story = () => (
         size="large"
     />
 );
+
+export const Dialog: Story = () => (
+    <QRCode
+        url="https://news.bbc.co.uk"
+        dialog
+    />
+);
