@@ -4,8 +4,6 @@ import Skeleton from '@mui/material/Skeleton';
 import { useTranslation } from 'react-i18next';
 import { IconButton } from '@mui/material';
 import CameraswitchIcon from '@mui/icons-material/Cameraswitch';
-import { useSetRecoilState } from 'recoil';
-import { fatalWebcam } from '@base/state/webrtcState';
 import { WebcamClass } from './webcamClass';
 
 interface Props {
@@ -16,6 +14,7 @@ interface Props {
     onPreprocess?: (image: HTMLCanvasElement) => void | Promise<void>;
     onPostprocess?: (image: HTMLCanvasElement) => void | Promise<void>;
     onActivated?: (available: boolean) => void;
+    onFatal?: () => void;
     direct?: boolean;
     hidden?: boolean;
     size: number;
@@ -31,6 +30,7 @@ export default function Webcam({
     onPreprocess,
     onPostprocess,
     onActivated,
+    onFatal,
     size,
 }: Props) {
     const { t } = useTranslation();
@@ -41,8 +41,6 @@ export default function Webcam({
     const loopRef = useRef<(n: number) => Promise<void>>();
     const [multiple, setMultiple] = useState(false);
     const [facing, setFacing] = useState(false);
-    //const [, setWebtRTCActive] = useRecoilState(webrtcActive);
-    const setFatalWebcam = useSetRecoilState(fatalWebcam);
 
     useEffect(() => {
         loopRef.current = async (timestamp: number) => {
@@ -134,14 +132,14 @@ export default function Webcam({
         initWebcam(camera).catch((e) => {
             if (onActivated) onActivated(false);
             console.error('No webcam', e);
-            setFatalWebcam(true);
+            if (onFatal) onFatal();
         });
         return () => {
             if (camera.webcam?.srcObject) {
                 camera.stop();
             }
         };
-    }, [facing, onActivated, initWebcam, setFatalWebcam, size]);
+    }, [facing, onActivated, initWebcam, onFatal, size]);
 
     useEffect(() => {
         return () => {
