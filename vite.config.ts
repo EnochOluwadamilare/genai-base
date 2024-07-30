@@ -12,7 +12,15 @@ export default defineConfig({
     plugins: [
         react(),
         libInjectCss(),
-        dts({ tsconfigPath: './tsconfig.build.json', include: ['lib'], rollupTypes: true }),
+        dts({
+            tsConfigFilePath: './tsconfig.build.json',
+            include: ['lib'],
+            rollupTypes: false,
+            beforeWriteFile: (filePath, content) => ({
+                filePath: filePath.replace('lib/', ''),
+                content,
+            }),
+        }),
     ],
     test: {
         environment: 'jsdom',

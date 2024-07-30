@@ -14,6 +14,15 @@
     "sideEffects": [
         "**/*.css"
     ],
+    "exports": {
+        ".": "./dist/main.js",
+        "./components/*": "./dist/components/*",
+        "./hooks/*": "./dist/hooks/*",
+        "./style/*": "./dist/style/*",
+        "./util/*": "./dist/util/*",
+        "./assets/*": "./dist/assets/*",
+        "./main/*": "./dist/*"
+    },
     "scripts": {
         "dev": "vite",
         "build": "tsc --build ./tsconfig.build.json && vite build",
@@ -42,6 +51,7 @@
         "@testing-library/jest-dom": "^6.4.6",
         "@testing-library/react": "^16.0.0",
         "@testing-library/user-event": "^14.5.2",
+        "@types/file-saver": "^2.0.7",
         "@types/node": "^20.14.10",
         "@types/qrcode": "^1.5.5",
         "@types/react": "^18.3.3",
@@ -62,11 +72,13 @@
         "recoil": "^0.7.7",
         "typescript": "^5.2.2",
         "vite": "^5.3.1",
-        "vite-plugin-dts": "^3.9.1",
+        "vite-plugin-dts": "^2.3.0",
         "vite-plugin-lib-inject-css": "^2.1.1",
         "vitest": "^2.0.1"
     },
     "dependencies": {
+        "file-saver": "^2.0.5",
+        "jszip": "^3.10.1",
         "peerjs": "^1.5.4",
         "qrcode": "^1.5.3"
     }
