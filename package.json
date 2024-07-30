@@ -16,12 +16,12 @@
     ],
     "exports": {
         ".": "./dist/main.js",
-        "./components/*": "./dist/components/*",
-        "./hooks/*": "./dist/hooks/*",
-        "./style/*": "./dist/style/*",
-        "./util/*": "./dist/util/*",
+        "./components/*": "./dist/components/*/*.js",
+        "./hooks/*": "./dist/hooks/*.js",
+        "./style/*": "./dist/style/*.js",
+        "./util/*": "./dist/util/*.js",
         "./assets/*": "./dist/assets/*",
-        "./main/*": "./dist/*"
+        "./main/*": "./dist/*.js"
     },
     "scripts": {
         "dev": "vite",
