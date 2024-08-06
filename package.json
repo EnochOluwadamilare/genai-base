@@ -21,7 +21,8 @@
         "./style/*": "./dist/style/*.js",
         "./util/*": "./dist/util/*.js",
         "./assets/*": "./dist/assets/*",
-        "./main/*": "./dist/*.js"
+        "./main/*": "./dist/*.js",
+        "./css/*": "./dist/*.css"
     },
     "scripts": {
         "dev": "vite",
