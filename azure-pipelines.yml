@@ -104,7 +104,6 @@ stages:
                 - script: |
                       echo -e "\n//npm.pkg.github.com/:_authToken=$(GITHUB_TOKEN)" >> ./.npmrc
                       npm ci
-                      npm install
                       npm run build
                       npm version --git-tag-version=false ${BUILD_SOURCEBRANCHNAME}
                       npm publish
