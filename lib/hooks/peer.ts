@@ -303,8 +303,10 @@ export default function usePeer<T extends PeerEvent>({
                 cbRef.current.onOpen();
             }
 
-            setSender(() => (data: T) => {
+            setSender(() => (data: T, exclude?: string[]) => {
+                const excludeSet = exclude ? new Set(exclude) : undefined;
                 for (const conn of state.connections.values()) {
+                    if (excludeSet?.has(conn.connectionId)) continue;
                     if (conn.open) conn.send(data);
                 }
             });
