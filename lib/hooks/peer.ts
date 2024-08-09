@@ -81,7 +81,7 @@ function isPeerEvent(data: unknown): data is BuiltinEvent {
     return typeof (data as PeerEvent).event === 'string';
 }
 
-export type SenderType<T> = (data: T | BuiltinEvent) => void;
+export type SenderType<T> = (data: T | BuiltinEvent, exclude?: string[]) => void;
 
 interface PeerState<T> {
     connections: Map<string, DataConnection>;
