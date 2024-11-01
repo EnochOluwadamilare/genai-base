@@ -223,8 +223,13 @@ export default function usePeer<T extends PeerEvent>({
         };
 
         const createPeer = (code: string) => {
+            const creationSession = {
+                alive: true,
+            };
             const conn = npeer.connect(code, { reliable: true });
             const waitTimer = window.setTimeout(() => {
+                if (!creationSession.alive) return;
+                creationSession.alive = false;
                 if (!conn.open) {
                     console.warn('Connect timeout', conn);
                     conn.close();
@@ -268,6 +273,7 @@ export default function usePeer<T extends PeerEvent>({
             });
             conn.on('error', (err: PeerError<string>) => {
                 console.error(err.type);
+                if (!creationSession.alive) return;
                 if (cbRef.current.onError) cbRef.current.onError(err);
                 setError('unknown');
                 setStatus('failed');
@@ -279,7 +285,8 @@ export default function usePeer<T extends PeerEvent>({
                 if (cbRef.current.onClose) cbRef.current.onClose(conn);
                 //setStatus('disconnected');
 
-                retryConnection(conn.peer);
+                if (creationSession.alive) retryConnection(conn.peer);
+                creationSession.alive = false;
             });
 
             conn.on('iceStateChanged', (state: RTCIceConnectionState) => {
