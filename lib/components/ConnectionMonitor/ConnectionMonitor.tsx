@@ -1,5 +1,5 @@
 import { iceConfig, webrtcActive } from '../../state/webrtcState';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRecoilState } from 'recoil';
 import PermissionDialog from './PermissionDialog';
 import { getRTConfig } from './ice';
@@ -15,11 +15,13 @@ interface Props {
     status?: PeerStatus;
     error?: PeerErrorType;
     keepOpen?: boolean;
+    onFailed?: () => void;
 }
 
-export default function ConnectionMonitor({ api, appName, ready, status, error, keepOpen }: Props) {
+export default function ConnectionMonitor({ api, appName, ready, status, error, keepOpen, onFailed }: Props) {
     const [ice, setIce] = useRecoilState(iceConfig);
     const [webrtc, setWebRTC] = useRecoilState(webrtcActive);
+    const [failed, setFailed] = useState(false);
     const streamRef = useRef<MediaStream | undefined>();
 
     // Get ICE servers
@@ -27,9 +29,15 @@ export default function ConnectionMonitor({ api, appName, ready, status, error, 
         if (!ice) {
             getRTConfig(api, appName, (data) => {
                 setIce(data);
+                if (!data && onFailed) {
+                    onFailed();
+                }
+                if (!data) {
+                    setFailed(true);
+                }
             });
         }
-    }, [ice, setIce, api, appName]);
+    }, [ice, setIce, api, appName, onFailed]);
 
     useEffect(() => {
         if (status === 'starting') {
@@ -64,15 +72,15 @@ export default function ConnectionMonitor({ api, appName, ready, status, error, 
 
     return (
         <>
-            <IceDialog open={!ice} />
+            <IceDialog open={!ice && !failed} />
             <PermissionDialog open={ice && webrtc === 'unset'} />
             <ProgressDialog
                 status={status}
                 keepOpen={keepOpen}
             />
             <ConnectionError
-                error={error}
-                hasError={status === 'failed'}
+                error={failed ? 'missing-ice' : error}
+                hasError={status === 'failed' || failed}
             />
         </>
     );

@@ -12,13 +12,22 @@ export interface CommunicationRelayConfiguration {
     iceServers: CommunicationIceServer[];
 }
 
-export function getRTConfig(api: string, appName: string, resolve: (value: CommunicationRelayConfiguration) => void) {
+let hasSucceeded = false;
+
+export function getRTConfig(api: string, appName: string, resolve: (value?: CommunicationRelayConfiguration) => void) {
     fetch(`${api}/rtcconfig?appName=${appName}`)
         .then((response) => {
-            if (response.ok) response.json().then(resolve);
-            else setTimeout(() => getRTConfig(api, appName, resolve), 1000);
+            console.log('rtcconfig response', response);
+            if (response.ok) {
+                hasSucceeded = true;
+                response.json().then(resolve);
+            } else setTimeout(() => getRTConfig(api, appName, resolve), 1000);
         })
         .catch(() => {
+            if (!hasSucceeded) {
+                resolve();
+                return;
+            }
             setTimeout(() => getRTConfig(api, appName, resolve), 1000);
         });
 }
