@@ -7,10 +7,20 @@
     position: absolute;
     top: 0.5rem;
     right: 0.5rem;
+    pointer-events: none;
+    width: 120px;
+    overflow: hidden;
 }
 
 .containerSuccess {
     composes: container;
     opacity: 0.6;
     color: #00972e;
+}
+
+.message {
+    overflow-wrap: break-word;
+    text-wrap: wrap;
+    width: 100%;
+    text-align: center;
 }

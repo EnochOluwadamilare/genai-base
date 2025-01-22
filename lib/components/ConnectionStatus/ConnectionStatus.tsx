@@ -73,7 +73,7 @@ export default function ConnectionStatus({ api, appName, ready, status, error }:
                 />
             )}
             {!good && <FlashWifi />}
-            <div>{t(`loader.messages.${status}`)}</div>
+            <div className={style.message}>{t(`loader.messages.${status}`)}</div>
         </div>
     );
 }
