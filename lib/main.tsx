@@ -1,4 +1,5 @@
 export { default as ConnectionMonitor } from './components/ConnectionMonitor/ConnectionMonitor';
+export { default as ConnectionStatus } from './components/ConnectionStatus/ConnectionStatus';
 export { Button, LargeButton } from './components/Button/Button';
 export { default as usePeer } from './hooks/peer';
 export type { SenderType, PeerEvent, PeerErrorType, PeerStatus, BuiltinEvent } from './hooks/peer';

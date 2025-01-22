@@ -1,12 +1,12 @@
 import { iceConfig, webrtcActive } from '../../state/webrtcState';
 import { useEffect, useRef } from 'react';
 import { useRecoilState } from 'recoil';
-import PermissionDialog from './PermissionDialog';
-import { getRTConfig } from './ice';
-import IceDialog from './IceDialog';
-import ConnectionError from './ConnectionError';
+import { getRTConfig } from '../ConnectionMonitor/ice';
 import { PeerErrorType, PeerStatus } from '../../hooks/peer';
-import ProgressDialog from './ProgressDialog';
+import style from './style.module.css';
+import WifiIcon from '@mui/icons-material/Wifi';
+import FlashWifi from './FlashWifi';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
     api: string;
@@ -14,10 +14,10 @@ interface Props {
     ready?: boolean;
     status?: PeerStatus;
     error?: PeerErrorType;
-    keepOpen?: boolean;
 }
 
-export default function ConnectionMonitor({ api, appName, ready, status, error, keepOpen }: Props) {
+export default function ConnectionStatus({ api, appName, ready, status, error }: Props) {
+    const { t } = useTranslation();
     const [ice, setIce] = useRecoilState(iceConfig);
     const [webrtc, setWebRTC] = useRecoilState(webrtcActive);
     const streamRef = useRef<MediaStream | undefined>();
@@ -62,18 +62,18 @@ export default function ConnectionMonitor({ api, appName, ready, status, error, 
         }
     }, [ready, status]);
 
+    const good = ready && status === 'ready' && error === 'none';
+
     return (
-        <>
-            <IceDialog open={!ice} />
-            <PermissionDialog open={ice && webrtc === 'unset'} />
-            <ProgressDialog
-                status={status}
-                keepOpen={keepOpen}
-            />
-            <ConnectionError
-                error={error}
-                hasError={status === 'failed'}
-            />
-        </>
+        <div className={good ? style.containerSuccess : style.container}>
+            {good && (
+                <WifiIcon
+                    fontSize="large"
+                    color="inherit"
+                />
+            )}
+            {!good && <FlashWifi />}
+            <div>{t(`loader.messages.${status}`)}</div>
+        </div>
     );
 }

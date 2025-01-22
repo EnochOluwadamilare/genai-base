@@ -1,6 +1,5 @@
 import { PeerErrorType } from '../../hooks/peer';
-import { Button } from '../Button/Button';
-import { Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
+import { Dialog, DialogContent, DialogTitle } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import style from './style.module.css';
 import { useEffect, useState } from 'react';
@@ -27,15 +26,6 @@ export default function ConnectionError({ hasError, error }: Props) {
             <DialogContent className={style.errorContent}>
                 <div>{t(`loader.errors.${error}`, { defaultValue: t('loader.errors.unknown') })}</div>
             </DialogContent>
-            <DialogActions>
-                <Button
-                    variant="outlined"
-                    color="primary"
-                    onClick={() => setForceClose(true)}
-                >
-                    {t('loader.actions.close')}
-                </Button>
-            </DialogActions>
         </Dialog>
     );
 }
