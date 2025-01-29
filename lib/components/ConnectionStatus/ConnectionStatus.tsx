@@ -1,26 +1,47 @@
 import { iceConfig, webrtcActive } from '../../state/webrtcState';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRecoilState } from 'recoil';
-import { getRTConfig } from '../ConnectionMonitor/ice';
-import { PeerErrorType, PeerStatus } from '../../hooks/peer';
+import { getRTConfig } from './ice';
 import style from './style.module.css';
 import WifiIcon from '@mui/icons-material/Wifi';
 import FlashWifi from './FlashWifi';
 import { useTranslation } from 'react-i18next';
+import { PeerEvent, PeerStatus } from '@base/services/peer2peer/types';
+import Peer2Peer from '@base/services/peer2peer/Peer2Peer';
+import SignalWifiBadIcon from '@mui/icons-material/SignalWifiBad';
+
+const FAILURE_TIMEOUT = 20000;
 
 interface Props {
     api: string;
     appName: string;
     ready?: boolean;
-    status?: PeerStatus;
-    error?: PeerErrorType;
+    peer?: Peer2Peer<PeerEvent>;
+    visibility?: number;
+    noCheck?: boolean;
 }
 
-export default function ConnectionStatus({ api, appName, ready, status, error }: Props) {
+export default function ConnectionStatus({ api, appName, ready, peer, visibility, noCheck }: Props) {
     const { t } = useTranslation();
     const [ice, setIce] = useRecoilState(iceConfig);
     const [webrtc, setWebRTC] = useRecoilState(webrtcActive);
     const streamRef = useRef<MediaStream | undefined>();
+    const [status, setStatus] = useState<PeerStatus>('starting');
+    const [quality, setQuality] = useState(0);
+    const [, setP2PCheck] = useState(false);
+    //const [error, setError] = useState<PeerErrorType>('none');
+    const [failed, setFailed] = useState(false);
+
+    useEffect(() => {
+        if (peer) {
+            peer.on('status', setStatus);
+            peer.on('quality', setQuality);
+            //peer.on('error', setError);
+        } else {
+            setQuality(0);
+            setStatus('starting');
+        }
+    }, [peer]);
 
     // Get ICE servers
     useEffect(() => {
@@ -34,6 +55,16 @@ export default function ConnectionStatus({ api, appName, ready, status, error }:
     useEffect(() => {
         if (status === 'starting') {
             setWebRTC('unset');
+        }
+        if (status !== 'ready') {
+            const t = setTimeout(() => {
+                setFailed(true);
+            }, FAILURE_TIMEOUT);
+            return () => {
+                clearTimeout(t);
+            };
+        } else {
+            setFailed(false);
         }
     }, [status, setWebRTC]);
 
@@ -62,18 +93,57 @@ export default function ConnectionStatus({ api, appName, ready, status, error }:
         }
     }, [ready, status]);
 
-    const good = ready && status === 'ready' && error === 'none';
+    useEffect(() => {
+        if (ready && peer && !noCheck) {
+            fetch(`${api}/checkP2P/${peer.code}`)
+                .then((res) => {
+                    if (res.ok) {
+                        setP2PCheck(true);
+                    } else {
+                        setP2PCheck(false);
+                    }
+                })
+                .catch((e) => {
+                    console.error(e);
+                    setP2PCheck(false);
+                });
+        }
+    }, [ready, peer, api, noCheck]);
 
     return (
-        <div className={good ? style.containerSuccess : style.container}>
-            {good && (
-                <WifiIcon
-                    fontSize="large"
-                    color="inherit"
-                />
+        <>
+            {(visibility === undefined || quality <= visibility) && (
+                <div
+                    className={
+                        quality === 3
+                            ? style.containerSuccess
+                            : quality === 2
+                            ? style.containerMedium
+                            : style.containerBad
+                    }
+                >
+                    {!failed && quality > 0 && (
+                        <WifiIcon
+                            fontSize="large"
+                            color="inherit"
+                        />
+                    )}
+                    {!failed && quality <= 0 && <FlashWifi />}
+                    {failed && (
+                        <SignalWifiBadIcon
+                            fontSize="large"
+                            color="inherit"
+                        />
+                    )}
+                    <div className={style.message}>
+                        {ready
+                            ? t(`loader.messages.quality${quality}`)
+                            : failed
+                            ? t('loader.messages.failed')
+                            : t(`loader.messages.${status}`)}
+                    </div>
+                </div>
             )}
-            {!good && <FlashWifi />}
-            <div className={style.message}>{t(`loader.messages.${status}`)}</div>
-        </div>
+        </>
     );
 }

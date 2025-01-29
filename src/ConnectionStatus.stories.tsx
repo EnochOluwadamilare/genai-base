@@ -9,7 +9,7 @@ export default {
 
 export const Start: Story = () => {
     const id = useID(5);
-    const { ready, status, error } = usePeer({
+    const { ready, peer } = usePeer({
         host: import.meta.env.VITE_APP_PEER_SERVER,
         secure: import.meta.env.VITE_APP_PEER_SECURE === '1',
         key: import.meta.env.VITE_APP_PEER_KEY || 'peerjs',
@@ -19,10 +19,103 @@ export const Start: Story = () => {
     return (
         <ConnectionStatus
             api={import.meta.env.VITE_APP_APIURL}
-            appName="test"
+            appName="dev"
             ready={ready}
-            status={status}
-            error={error}
+            peer={peer}
+        />
+    );
+};
+
+export const LoopP2P: Story = () => {
+    const id = useID(5);
+    usePeer({
+        host: import.meta.env.VITE_APP_PEER_SERVER,
+        secure: import.meta.env.VITE_APP_PEER_SECURE === '1',
+        key: import.meta.env.VITE_APP_PEER_KEY || 'peerjs',
+        port: import.meta.env.VITE_APP_PEER_PORT ? parseInt(import.meta.env.VITE_APP_PEER_PORT) : 443,
+        code: `test-server`,
+    });
+
+    const { ready, peer } = usePeer({
+        host: import.meta.env.VITE_APP_PEER_SERVER,
+        secure: import.meta.env.VITE_APP_PEER_SECURE === '1',
+        key: import.meta.env.VITE_APP_PEER_KEY || 'peerjs',
+        port: import.meta.env.VITE_APP_PEER_PORT ? parseInt(import.meta.env.VITE_APP_PEER_PORT) : 443,
+        code: `test-${id}`,
+        server: `test-server`,
+    });
+
+    return (
+        <ConnectionStatus
+            api={import.meta.env.VITE_APP_APIURL}
+            appName="dev"
+            ready={ready}
+            peer={peer}
+            noCheck
+        />
+    );
+};
+
+export const LoopRelay: Story = () => {
+    const id = useID(5);
+    usePeer({
+        host: import.meta.env.VITE_APP_PEER_SERVER,
+        secure: import.meta.env.VITE_APP_PEER_SECURE === '1',
+        key: import.meta.env.VITE_APP_PEER_KEY || 'peerjs',
+        port: import.meta.env.VITE_APP_PEER_PORT ? parseInt(import.meta.env.VITE_APP_PEER_PORT) : 443,
+        code: `test-server`,
+        forceTURN: true,
+    });
+
+    const { ready, peer } = usePeer({
+        host: import.meta.env.VITE_APP_PEER_SERVER,
+        secure: import.meta.env.VITE_APP_PEER_SECURE === '1',
+        key: import.meta.env.VITE_APP_PEER_KEY || 'peerjs',
+        port: import.meta.env.VITE_APP_PEER_PORT ? parseInt(import.meta.env.VITE_APP_PEER_PORT) : 443,
+        code: `test-${id}`,
+        server: `test-server`,
+        forceTURN: true,
+    });
+
+    return (
+        <ConnectionStatus
+            api={import.meta.env.VITE_APP_APIURL}
+            appName="dev"
+            ready={ready}
+            peer={peer}
+            noCheck
+        />
+    );
+};
+
+export const LoopSocket: Story = () => {
+    const id = useID(5);
+    usePeer({
+        host: import.meta.env.VITE_APP_PEER_SERVER,
+        secure: import.meta.env.VITE_APP_PEER_SECURE === '1',
+        key: import.meta.env.VITE_APP_PEER_KEY || 'peerjs',
+        port: import.meta.env.VITE_APP_PEER_PORT ? parseInt(import.meta.env.VITE_APP_PEER_PORT) : 443,
+        code: `test-server`,
+        forceWebsocket: true,
+    });
+
+    const { ready, peer } = usePeer({
+        host: import.meta.env.VITE_APP_PEER_SERVER,
+        secure: import.meta.env.VITE_APP_PEER_SECURE === '1',
+        key: import.meta.env.VITE_APP_PEER_KEY || 'peerjs',
+        port: import.meta.env.VITE_APP_PEER_PORT ? parseInt(import.meta.env.VITE_APP_PEER_PORT) : 443,
+        code: `test-${id}`,
+        server: `test-server`,
+        forceWebsocket: true,
+    });
+
+    return (
+        <ConnectionStatus
+            api={import.meta.env.VITE_APP_APIURL}
+            appName="dev"
+            ready={ready}
+            peer={peer}
+            noCheck
         />
     );
 };
@@ -33,7 +126,7 @@ interface DisabledProps {
 
 export const Disabled: Story<DisabledProps> = ({ disabled }: DisabledProps) => {
     const id = useID(5);
-    const { ready, status, error } = usePeer({
+    const { ready, peer } = usePeer({
         disabled,
         host: import.meta.env.VITE_APP_PEER_SERVER,
         secure: import.meta.env.VITE_APP_PEER_SECURE === '1',
@@ -44,10 +137,10 @@ export const Disabled: Story<DisabledProps> = ({ disabled }: DisabledProps) => {
     return (
         <ConnectionStatus
             api={import.meta.env.VITE_APP_APIURL}
-            appName="test"
+            appName="dev"
             ready={ready}
-            status={status}
-            error={error}
+            peer={peer}
+            noCheck
         />
     );
 };

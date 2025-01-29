@@ -1,4 +1,4 @@
-import { CommunicationRelayConfiguration } from '../components/ConnectionMonitor/ice';
+import { CommunicationRelayConfiguration } from '../components/ConnectionStatus/ice';
 import { atom } from 'recoil';
 
 type WebRTCPermissions = 'disabled' | 'unset' | 'full' | 'relay';

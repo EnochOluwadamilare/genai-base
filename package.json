@@ -71,13 +71,14 @@
         "react-dom": "^18.3.1",
         "react-i18next": "^14.1.2",
         "recoil": "^0.7.7",
-        "typescript": "^5.2.2",
+        "typescript": "^5.7.3",
         "vite": "^5.3.1",
         "vite-plugin-dts": "^2.3.0",
         "vite-plugin-lib-inject-css": "^2.1.1",
         "vitest": "^2.0.1"
     },
     "dependencies": {
+        "eventemitter3": "^5.0.1",
         "file-saver": "^2.0.5",
         "jszip": "^3.10.1",
         "peerjs": "^1.5.4",
