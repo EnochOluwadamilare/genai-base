@@ -48,6 +48,10 @@ export type SenderType<T> = (data: T | BuiltinEvent, exclude?: string[]) => void
 
 export interface Connection<T extends PeerEvent> {
     send: (data: T) => void;
+    open: boolean;
+    quality: number;
+    connectionType: PeerConnectionType;
+    connectionId: string;
 }
 
 // 'connect' | 'data' | 'close' | 'open' | 'error' | 'status'

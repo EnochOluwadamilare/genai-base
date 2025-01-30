@@ -1,7 +1,15 @@
 export { default as ConnectionStatus } from './components/ConnectionStatus/ConnectionStatus';
 export { Button, LargeButton } from './components/Button/Button';
 export { default as usePeer } from './hooks/peer';
-export type { SenderType, PeerEvent, PeerErrorType, PeerStatus, BuiltinEvent } from './services/peer2peer/types';
+export type {
+    SenderType,
+    PeerEvent,
+    PeerErrorType,
+    PeerStatus,
+    BuiltinEvent,
+    Connection,
+    PeerConnectionType,
+} from './services/peer2peer/types';
 export { default as Peer2Peer } from './services/peer2peer/Peer2Peer';
 export { useID } from './hooks/id';
 export { useOnlyOnce } from './hooks/onlyOnce';
