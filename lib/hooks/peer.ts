@@ -113,7 +113,7 @@ export default function usePeer<T extends PeerEvent>({
     }, []);
 
     return {
-        send: peer ? peer.sendAll.bind(peer) : undefined,
+        send: peer ? peer.boundSendAll : undefined,
         ready: status === 'ready',
         peer,
     };

@@ -84,6 +84,7 @@ export default class Peer2Peer<T extends PeerEvent> {
     public readonly code: string;
     private _quality = 0;
     private options?: P2POptions;
+    public boundSendAll: (typeof this)['sendAll'];
 
     constructor(
         code: string,
@@ -106,6 +107,8 @@ export default class Peer2Peer<T extends PeerEvent> {
         this.options = options;
 
         this.peer = this.createPeerServer();
+
+        this.boundSendAll = this.sendAll.bind(this);
     }
 
     public get quality(): number {
