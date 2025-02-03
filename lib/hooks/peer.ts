@@ -44,7 +44,7 @@ export default function usePeer<T extends PeerEvent>({
     const cbRef = useRef<Callbacks<T>>({});
     const [webrtc, setWebRTC] = useRecoilState(webrtcActive);
     const ice = useRecoilValue(iceConfig);
-    const [status, setStatus] = useState<PeerStatus>('starting');
+    const [status, setStatus] = useState<PeerStatus>('connecting');
 
     useEffect(() => {
         cbRef.current.onClose = onClose;
@@ -56,11 +56,11 @@ export default function usePeer<T extends PeerEvent>({
 
     useEffect(() => {
         if (disabled) {
-            setStatus('inactive');
+            setStatus('failed');
             setWebRTC('disabled');
             return;
         } else {
-            setStatus('starting');
+            setStatus('connecting');
         }
         if (webrtc === 'unset') return;
         if (webrtc === 'disabled') {

@@ -47,7 +47,7 @@ export const LoopP2P: Story = () => {
         onData,
     });
 
-    const { send: send2 } = usePeer({
+    const { send: send2, peer: peer2 } = usePeer({
         host: import.meta.env.VITE_APP_PEER_SERVER,
         secure: import.meta.env.VITE_APP_PEER_SECURE === '1',
         key: import.meta.env.VITE_APP_PEER_KEY || 'peerjs',
@@ -70,13 +70,22 @@ export const LoopP2P: Story = () => {
     }, [ready, send1, send2]);
 
     return (
-        <ConnectionStatus
-            api={import.meta.env.VITE_APP_APIURL}
-            appName="dev"
-            ready={ready}
-            peer={peer}
-            noCheck
-        />
+        <>
+            <ConnectionStatus
+                api={import.meta.env.VITE_APP_APIURL}
+                appName="dev"
+                ready={ready}
+                peer={peer}
+                noCheck
+            />
+            <ConnectionStatus
+                api={import.meta.env.VITE_APP_APIURL}
+                appName="dev"
+                ready={ready}
+                peer={peer2}
+                noCheck
+            />
+        </>
     );
 };
 
@@ -100,7 +109,7 @@ export const LoopRelay: Story = () => {
         onData,
     });
 
-    const { send: send2 } = usePeer({
+    const { send: send2, peer: peer2 } = usePeer({
         host: import.meta.env.VITE_APP_PEER_SERVER,
         secure: import.meta.env.VITE_APP_PEER_SECURE === '1',
         key: import.meta.env.VITE_APP_PEER_KEY || 'peerjs',
@@ -124,13 +133,22 @@ export const LoopRelay: Story = () => {
     }, [ready, send1, send2]);
 
     return (
-        <ConnectionStatus
-            api={import.meta.env.VITE_APP_APIURL}
-            appName="dev"
-            ready={ready}
-            peer={peer}
-            noCheck
-        />
+        <>
+            <ConnectionStatus
+                api={import.meta.env.VITE_APP_APIURL}
+                appName="dev"
+                ready={ready}
+                peer={peer}
+                noCheck
+            />
+            <ConnectionStatus
+                api={import.meta.env.VITE_APP_APIURL}
+                appName="dev"
+                ready={ready}
+                peer={peer2}
+                noCheck
+            />
+        </>
     );
 };
 
@@ -153,7 +171,7 @@ export const LoopSocket: Story = () => {
         onData,
     });
 
-    const { send: send2 } = usePeer({
+    const { send: send2, peer: peer2 } = usePeer({
         host: import.meta.env.VITE_APP_PEER_SERVER,
         secure: import.meta.env.VITE_APP_PEER_SECURE === '1',
         key: import.meta.env.VITE_APP_PEER_KEY || 'peerjs',
@@ -177,13 +195,22 @@ export const LoopSocket: Story = () => {
     }, [ready, send1, send2]);
 
     return (
-        <ConnectionStatus
-            api={import.meta.env.VITE_APP_APIURL}
-            appName="dev"
-            ready={ready}
-            peer={peer}
-            noCheck
-        />
+        <>
+            <ConnectionStatus
+                api={import.meta.env.VITE_APP_APIURL}
+                appName="dev"
+                ready={ready}
+                peer={peer}
+                noCheck
+            />
+            <ConnectionStatus
+                api={import.meta.env.VITE_APP_APIURL}
+                appName="dev"
+                ready={ready}
+                peer={peer2}
+                noCheck
+            />
+        </>
     );
 };
 

@@ -4,9 +4,9 @@
     align-items: center;
     color: #ed6c02;
     font-size: 0.9rem;
-    position: absolute;
+    /*position: absolute;
     top: 0.5rem;
-    right: 0.5rem;
+    right: 0.5rem;*/
     pointer-events: none;
     user-select: none;
     width: 120px;

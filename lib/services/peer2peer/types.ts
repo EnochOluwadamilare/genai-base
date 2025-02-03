@@ -1,4 +1,4 @@
-export type PeerStatus = 'starting' | 'failed' | 'ready' | 'retry' | 'inactive';
+export type PeerStatus = 'connecting' | 'ready' | 'failed';
 export type PeerErrorType =
     | 'none'
     | 'id-in-use'

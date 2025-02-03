@@ -68,7 +68,7 @@ export default class Peer2Peer<T extends PeerEvent> {
     private connections = new Map<string, IConnectionIO>();
     private heatbeatTimeout = -1;
     private retryTimeout = -1;
-    public status: PeerStatus = 'starting';
+    public status: PeerStatus = 'connecting';
     private connRetryCount = 0;
     public isRelay = false;
     public error: PeerErrorType = 'none';
@@ -85,6 +85,7 @@ export default class Peer2Peer<T extends PeerEvent> {
     private _quality = 0;
     private options?: P2POptions;
     public boundSendAll: (typeof this)['sendAll'];
+    private failed = false;
 
     constructor(
         code: string,
@@ -115,9 +116,18 @@ export default class Peer2Peer<T extends PeerEvent> {
         return this._quality;
     }
 
-    private updateQuality() {
+    public get size(): number {
+        return this.connections.size;
+    }
+
+    private update() {
         if (!this.peer.open || this.peer.disconnected || this.peer.destroyed) {
             this._quality = 0;
+            this.status = this.failed ? 'failed' : 'connecting';
+        } else if (this.server) {
+            const conn = this.connections.get(this.server);
+            this._quality = conn?.connection.quality || 0;
+            this.status = conn?.status || 'connecting';
         } else {
             let bestQuality = this._quality;
             this.connections.forEach((c) => {
@@ -126,8 +136,10 @@ export default class Peer2Peer<T extends PeerEvent> {
                 }
             });
             this._quality = bestQuality;
+            this.status = 'ready';
         }
         this.emit('quality', this._quality);
+        this.emit('status', this.status);
     }
 
     private emit<TEventName extends keyof P2PEvents<T> & string>(
@@ -168,11 +180,11 @@ export default class Peer2Peer<T extends PeerEvent> {
         p.on('connection', (conn) => this.onConnection(new PeerConnection(conn.peer, this.peer, false, conn)));
         p.on('error', (err) => this.onError(err));
         p.on('close', () => {
-            this.updateQuality();
+            this.update();
         });
         p.on('disconnected', () => {
             if (this.heatbeatTimeout >= 0) clearTimeout(this.heatbeatTimeout);
-            this.updateQuality();
+            this.update();
         });
         return p;
     }
@@ -197,16 +209,11 @@ export default class Peer2Peer<T extends PeerEvent> {
         }
         this.peer.removeAllListeners();
         this.peer.destroy();
-        this.updateQuality();
-    }
-
-    private setStatus(status: PeerStatus) {
-        this.status = status;
-        this.emit('status', status);
+        this.update();
     }
 
     private setError(error: PeerErrorType) {
-        this.updateQuality();
+        this.update();
         this.error = error;
         if (error !== 'none') {
             this.emit('error', error);
@@ -219,7 +226,7 @@ export default class Peer2Peer<T extends PeerEvent> {
         if (oldConn) {
             oldConn.close();
         }
-        this.setStatus('retry');
+
         setTimeout(() => {
             if (this.peer.destroyed) return;
             this.createPeer(peer, useServer);
@@ -246,13 +253,11 @@ export default class Peer2Peer<T extends PeerEvent> {
         this.connections.set(conn.peer, out);
 
         out.on('retry', () => {
-            this.updateQuality();
-            this.setStatus('retry');
+            this.update();
         });
 
         out.on('connect', () => {
-            this.updateQuality();
-            this.setStatus('ready');
+            this.update();
             this.setError('none');
             this.emit('connect', out.connection);
         });
@@ -268,7 +273,7 @@ export default class Peer2Peer<T extends PeerEvent> {
 
         out.on('close', () => {
             this.connections.delete(out.connection.peer);
-            this.updateQuality();
+            this.update();
             this.emit('close', out.connection);
         });
     }
@@ -278,7 +283,6 @@ export default class Peer2Peer<T extends PeerEvent> {
         this.heatbeatTimeout = window.setTimeout(() => {
             if (!document.hidden) {
                 this.heatbeatTimeout = -1;
-                this.setStatus('retry');
                 this.reset();
             } else {
                 // Hidden page so try again later.
@@ -310,7 +314,7 @@ export default class Peer2Peer<T extends PeerEvent> {
         // In case no heartbeat is ever received
         this.retry();
 
-        this.updateQuality();
+        this.update();
 
         this.emit('open');
 
@@ -318,11 +322,9 @@ export default class Peer2Peer<T extends PeerEvent> {
             if (!this.connections.has(this.server)) {
                 this.createPeer(this.server, this.options?.forceWebsocket ? true : false);
             } else {
-                this.setStatus('ready');
                 this.setError('none');
             }
         } else {
-            this.setStatus('ready');
             this.setError('none');
         }
     }
@@ -357,12 +359,13 @@ export default class Peer2Peer<T extends PeerEvent> {
 
         incom.on('connect', () => {
             this.connRetryCount = 0;
-            this.updateQuality();
+            this.update();
+            this.emit('connect', incom.connection);
         });
 
         incom.on('close', () => {
             this.connections.delete(incom.connection.peer);
-            this.updateQuality();
+            this.update();
             this.emit('close', incom.connection);
         });
     }
@@ -373,44 +376,37 @@ export default class Peer2Peer<T extends PeerEvent> {
         switch (type) {
             case 'disconnected':
             case 'network':
-                this.setStatus('retry');
                 clearTimeout(this.retryTimeout);
                 this.retryTimeout = window.setTimeout(() => {
                     try {
                         this.peer.reconnect();
                     } catch (e) {
-                        this.setStatus('failed');
                         this.setError('peer-not-found');
                     }
                 }, expBackoff(this.peerRetryCount++));
                 break;
             case 'server-error':
-                this.setStatus('retry');
                 clearTimeout(this.retryTimeout);
                 this.retryTimeout = window.setTimeout(() => {
                     try {
                         this.peer.reconnect();
                     } catch (e) {
-                        this.setStatus('failed');
                         this.setError('peer-not-found');
                     }
                 }, expBackoff(this.peerRetryCount++));
                 break;
             case 'unavailable-id':
                 if (this.idRetryCount < MAX_ID_RETRY) {
-                    this.setStatus('retry');
                     clearTimeout(this.retryTimeout);
                     this.retryTimeout = window.setTimeout(() => {
                         this.reset();
                     }, expBackoff(this.idRetryCount++));
                 } else {
                     this.peer.destroy();
-                    this.setStatus('failed');
                     this.setError('id-in-use');
                 }
                 break;
             case 'browser-incompatible':
-                this.setStatus('failed');
                 this.setError('bad-browser');
                 break;
             case 'peer-unavailable':
@@ -418,7 +414,6 @@ export default class Peer2Peer<T extends PeerEvent> {
                     if (this.connRetryCount < MAX_CONN_RETRY) {
                         this.retryConnection(this.server);
                     } else {
-                        this.setStatus('failed');
                         this.setError('peer-not-found');
                     }
                 }
@@ -427,13 +422,12 @@ export default class Peer2Peer<T extends PeerEvent> {
             case 'webrtc':
                 break;
             default:
-                this.setStatus('retry');
                 clearTimeout(this.retryTimeout);
                 this.retryTimeout = window.setTimeout(() => {
                     this.reset();
                 }, expBackoff(this.peerRetryCount++));
         }
-        this.updateQuality();
+        this.update();
     }
 
     public sendAll(data: T, exclude?: string[]) {

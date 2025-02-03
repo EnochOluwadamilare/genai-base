@@ -26,7 +26,7 @@ export default function ConnectionStatus({ api, appName, ready, peer, visibility
     const [ice, setIce] = useRecoilState(iceConfig);
     const [webrtc, setWebRTC] = useRecoilState(webrtcActive);
     const streamRef = useRef<MediaStream | undefined>();
-    const [status, setStatus] = useState<PeerStatus>('starting');
+    const [status, setStatus] = useState<PeerStatus>('connecting');
     const [quality, setQuality] = useState(0);
     const [, setP2PCheck] = useState(false);
     //const [error, setError] = useState<PeerErrorType>('none');
@@ -39,7 +39,7 @@ export default function ConnectionStatus({ api, appName, ready, peer, visibility
             //peer.on('error', setError);
         } else {
             setQuality(0);
-            setStatus('starting');
+            setStatus('connecting');
         }
     }, [peer]);
 
@@ -53,9 +53,9 @@ export default function ConnectionStatus({ api, appName, ready, peer, visibility
     }, [ice, setIce, api, appName]);
 
     useEffect(() => {
-        if (status === 'starting') {
+        /*if (status === 'connecting') {
             setWebRTC('unset');
-        }
+        }*/
         if (status !== 'ready') {
             const t = setTimeout(() => {
                 setFailed(true);

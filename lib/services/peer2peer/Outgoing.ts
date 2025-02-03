@@ -1,6 +1,6 @@
 import EventEmitter from 'eventemitter3';
 import PeerConnection, { IConnectionIO } from './PeerConnection';
-import { BuiltinEvent, PeerEvent } from './types';
+import { BuiltinEvent, PeerEvent, PeerStatus } from './types';
 import { PeerError } from 'peerjs';
 import { expBackoff } from '@base/util/backoff';
 
@@ -18,6 +18,8 @@ export default class Outgoing extends EventEmitter<'connect' | 'retry' | 'close'
     private retryCount = 0;
     private options?: OutgoingOptions;
     public readonly direction: 'outgoing' | 'incoming' = 'outgoing';
+    private connectionCount = 0;
+    private _status: PeerStatus = 'connecting';
 
     constructor(connection: PeerConnection, options?: OutgoingOptions) {
         super();
@@ -26,7 +28,12 @@ export default class Outgoing extends EventEmitter<'connect' | 'retry' | 'close'
         this.addHandlers();
     }
 
+    public get status() {
+        return this._status;
+    }
+
     private delayedRecreate() {
+        this._status = 'connecting';
         if (this.timeout >= 0) clearTimeout(this.timeout);
         this.timeout = window.setTimeout(() => {
             this.recreate();
@@ -34,6 +41,7 @@ export default class Outgoing extends EventEmitter<'connect' | 'retry' | 'close'
     }
 
     private recreate(server = false) {
+        this._status = 'connecting';
         const old = this._connection;
         old.removeAllListeners();
         old.close();
@@ -60,6 +68,8 @@ export default class Outgoing extends EventEmitter<'connect' | 'retry' | 'close'
         this._connection.on('open', () => {
             this.retryCount = 0;
             this._connection.send({ event: 'eter:join' });
+            this.connectionCount += 1;
+            this._status = 'ready';
             this.emit('connect', this._connection);
         });
 
@@ -78,7 +88,7 @@ export default class Outgoing extends EventEmitter<'connect' | 'retry' | 'close'
                 this.emit('retry');
                 this.delayedRecreate();
             } else {
-                this.emit('close');
+                this.close();
             }
         });
     }
@@ -93,6 +103,7 @@ export default class Outgoing extends EventEmitter<'connect' | 'retry' | 'close'
         //if (this._connection.open) {
         this._connection.removeAllListeners();
         this._connection.close();
+        this._status = 'failed';
         this.emit('close');
         //}
     }

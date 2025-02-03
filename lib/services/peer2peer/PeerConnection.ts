@@ -1,6 +1,6 @@
 import EventEmitter from 'eventemitter3';
 import Peer, { DataConnection } from 'peerjs';
-import { PeerConnectionType, PeerJSMessage } from './types';
+import { PeerConnectionType, PeerJSMessage, PeerStatus } from './types';
 import { createAsym } from '@base/util/crypto';
 import { base64ToBytes, bytesToBase64 } from '@base/util/base64';
 import P2PException from './error';
@@ -277,4 +277,5 @@ export interface IConnectionIO extends EventEmitter<'connect' | 'retry' | 'close
     direction: 'outgoing' | 'incoming';
     connection: PeerConnection;
     close: () => void;
+    status: PeerStatus;
 }
