@@ -14,9 +14,13 @@ describe('PeerConnection', () => {
                     async () => new Map([['a', { type: 'candidate-pair', state: 'succeeded', remoteCandidateId: 'a' }]])
                 ),
             },
+            close: vi.fn(),
+            removeAllListeners: vi.fn(),
         } as unknown as DataConnection;
-        const peer = {} as Peer;
-        const conn = new PeerConnection('test-peer', peer, dc);
+        const peer = {
+            once: vi.fn((e: string, fn: (...args: unknown[]) => void) => ee.once(e, fn)),
+        } as unknown as Peer;
+        const conn = new PeerConnection('test-peer', peer, false, dc);
 
         expect(dc.on).toHaveBeenCalledWith('open', expect.any(Function));
         expect(dc.on).toHaveBeenCalledWith('close', expect.any(Function));
@@ -30,6 +34,9 @@ describe('PeerConnection', () => {
         await vi.waitFor(() => {
             expect(conn.connectionType).toBe('p2p');
         });
+
+        conn.close();
+        expect(dc.removeAllListeners).toHaveBeenCalled();
     });
 
     it('forwards a p2p send', ({ expect }) => {
@@ -40,9 +47,13 @@ describe('PeerConnection', () => {
                 getStats: vi.fn(async () => []),
             },
             send: vi.fn(),
+            close: vi.fn(),
+            removeAllListeners: vi.fn(),
         } as unknown as DataConnection;
-        const peer = {} as Peer;
-        const conn = new PeerConnection('test-peer', peer, dc);
+        const peer = {
+            once: vi.fn((e: string, fn: (...args: unknown[]) => void) => ee.once(e, fn)),
+        } as unknown as Peer;
+        const conn = new PeerConnection('test-peer', peer, false, dc);
 
         ee.emit('open');
         conn.send({ event: 'something' });
@@ -54,12 +65,16 @@ describe('PeerConnection', () => {
         const ee = new EventEmitter();
         const peer = {
             id: 'testpeer',
+            open: true,
             socket: {
                 send: vi.fn(),
+                on: vi.fn(),
+                off: vi.fn(),
             },
             on: vi.fn((e: string, fn: (...args: unknown[]) => void) => ee.on(e, fn)),
+            once: vi.fn((e: string, fn: (...args: unknown[]) => void) => ee.once(e, fn)),
         } as unknown as Peer;
-        const conn = new PeerConnection('test-peer', peer);
+        const conn = new PeerConnection('test-peer', peer, false);
         const cryptoEvent = vi.fn();
         conn.on('crypto', cryptoEvent);
 
@@ -82,18 +97,21 @@ describe('PeerConnection', () => {
             id: 'testpeer',
             socket: {
                 send: vi.fn(),
+                on: vi.fn((e: string, fn: (...args: unknown[]) => void) => ee.on(e, fn)),
+                off: vi.fn((e: string, fn: (...args: unknown[]) => void) => ee.off(e, fn)),
             },
             on: vi.fn((e: string, fn: (...args: unknown[]) => void) => ee.on(e, fn)),
+            once: vi.fn((e: string, fn: (...args: unknown[]) => void) => ee.once(e, fn)),
         } as unknown as Peer;
 
-        const conn1 = new PeerConnection('test-peer', peer);
+        const conn1 = new PeerConnection('test-peer', peer, false);
         const cryptoEvent1 = vi.fn();
         conn1.on('crypto', cryptoEvent1);
         await vi.waitFor(() => {
             expect(cryptoEvent1).toHaveBeenCalled();
         });
 
-        const conn2 = new PeerConnection('test-peer', peer);
+        const conn2 = new PeerConnection('test-peer2', peer, false);
         const cryptoEvent2 = vi.fn();
         conn2.on('crypto', cryptoEvent2);
         await vi.waitFor(() => {
@@ -106,6 +124,7 @@ describe('PeerConnection', () => {
         const key = conn1.getPublicKey();
         if (key) {
             conn2.setKey(key);
+            ee.emit('message', { type: 'KEY', dst: 'test-peer2', src: 'test-peer', payload: key });
         }
         await vi.waitFor(() => {
             expect(openEvent).toHaveBeenCalled();
@@ -121,14 +140,17 @@ describe('PeerConnection', () => {
                 send: (d: PeerJSMessage) => {
                     msgs.push(d);
                 },
+                on: vi.fn(),
+                off: vi.fn(),
             },
             on: vi.fn((e: string, fn: (...args: unknown[]) => void) => ee.on(e, fn)),
+            once: vi.fn((e: string, fn: (...args: unknown[]) => void) => ee.once(e, fn)),
         } as unknown as Peer;
 
-        const conn1 = new PeerConnection('test-peer', peer);
+        const conn1 = new PeerConnection('test-peer', peer, false);
         const cryptoEvent = vi.fn();
         conn1.on('crypto', cryptoEvent);
-        const conn2 = new PeerConnection('test-peer', peer);
+        const conn2 = new PeerConnection('test-peer', peer, false);
         conn2.on('crypto', cryptoEvent);
 
         await vi.waitFor(() => {

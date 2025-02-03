@@ -2,14 +2,15 @@ import { CommunicationRelayConfiguration } from '@base/components/ConnectionStat
 import { Peer as P2P, PeerError } from 'peerjs';
 import EE from 'eventemitter3';
 import { BuiltinEvent, Connection, PeerErrorType, PeerEvent, PeerJSMessage, PeerStatus } from './types';
-import PeerConnection from './PeerConnection';
+import PeerConnection, { IConnectionIO } from './PeerConnection';
+import Outgoing from './Outgoing';
+import Incoming from './Incoming';
 
-const MAX_BACKOFF = 4;
+const MAX_BACKOFF = 3;
 const BASE_RETRY_TIME = 1000;
-const WAIT_TIME = 10000;
 const HEARTBEAT_TIMEOUT = 10000;
-const MAX_ID_RETRY = 10;
-const MAX_CONN_RETRY = 20;
+const MAX_ID_RETRY = 20;
+const MAX_CONN_RETRY = 30;
 
 function expBackoff(count: number) {
     return Math.pow(2, Math.min(count, MAX_BACKOFF)) * BASE_RETRY_TIME;
@@ -64,9 +65,8 @@ export interface P2POptions {
 export default class Peer2Peer<T extends PeerEvent> {
     private emitter = new EE();
     private peer: P2P;
-    private connections = new Map<string, PeerConnection>();
+    private connections = new Map<string, IConnectionIO>();
     private heatbeatTimeout = -1;
-    private connectTimeout = -1;
     private retryTimeout = -1;
     public status: PeerStatus = 'starting';
     private connRetryCount = 0;
@@ -121,8 +121,8 @@ export default class Peer2Peer<T extends PeerEvent> {
         } else {
             let bestQuality = this._quality;
             this.connections.forEach((c) => {
-                if (c.open) {
-                    bestQuality = Math.max(bestQuality, c.quality);
+                if (c.connection.open) {
+                    bestQuality = Math.max(bestQuality, c.connection.quality);
                 }
             });
             this._quality = bestQuality;
@@ -165,12 +165,13 @@ export default class Peer2Peer<T extends PeerEvent> {
             },
         });
         p.on('open', () => this.onOpen());
-        p.on('connection', (conn) => this.onConnection(new PeerConnection(conn.peer, this.peer, conn)));
+        p.on('connection', (conn) => this.onConnection(new PeerConnection(conn.peer, this.peer, false, conn)));
         p.on('error', (err) => this.onError(err));
         p.on('close', () => {
             this.updateQuality();
         });
         p.on('disconnected', () => {
+            if (this.heatbeatTimeout >= 0) clearTimeout(this.heatbeatTimeout);
             this.updateQuality();
         });
         return p;
@@ -193,9 +194,6 @@ export default class Peer2Peer<T extends PeerEvent> {
         }
         if (this.retryTimeout >= 0) {
             clearTimeout(this.retryTimeout);
-        }
-        if (this.connectTimeout >= 0) {
-            clearTimeout(this.connectTimeout);
         }
         this.peer.removeAllListeners();
         this.peer.destroy();
@@ -230,12 +228,10 @@ export default class Peer2Peer<T extends PeerEvent> {
 
     /** Initiate a connection to a peer */
     public createPeer(code: string, useServer?: boolean) {
-        const creationSession = {
-            alive: true,
-        };
         const conn = new PeerConnection(
             code,
             this.peer,
+            true,
             useServer ? undefined : this.peer.connect(code, { reliable: true })
         );
 
@@ -245,67 +241,40 @@ export default class Peer2Peer<T extends PeerEvent> {
             oldConn.close();
         }
 
-        this.connections.set(conn.peer, conn);
+        const out = new Outgoing(conn);
 
-        this.connectTimeout = window.setTimeout(() => {
-            this.connectTimeout = -1;
-            if (!creationSession.alive) return;
-            creationSession.alive = false;
-            if (!conn.open) {
-                console.warn('Connect timeout', conn);
-                conn.close(); // Just double check
-                this.connections.delete(conn.peer);
-                this.updateQuality();
+        this.connections.set(conn.peer, out);
 
-                if (this.peer.destroyed) return;
-                this.setStatus('retry');
-                this.createPeer(code, true);
-            }
-        }, WAIT_TIME);
-
-        conn.on('open', () => {
-            clearTimeout(this.connectTimeout);
-            this.connectTimeout = -1;
-
+        out.on('retry', () => {
             this.updateQuality();
+            this.setStatus('retry');
+        });
 
-            conn.send({ event: 'eter:join' });
+        out.on('connect', () => {
+            this.updateQuality();
             this.setStatus('ready');
             this.setError('none');
-            this.emit('connect', conn);
+            this.emit('connect', out.connection);
         });
-        conn.on('data', async (data: unknown) => {
+        out.on('data', async (data: unknown) => {
             if (isPeerEvent(data)) {
                 if (data.event === 'eter:connect') {
                     this.createPeer(data.code);
                 } else {
-                    this.emit('data', data as T, conn);
+                    this.emit('data', data as T, out.connection);
                 }
             }
         });
-        conn.on('error', (err: PeerError<string>) => {
-            console.error(err.type);
-            if (!creationSession.alive) return;
-            this.setError('unknown');
-            this.setStatus('failed');
-        });
-        conn.on('close', () => {
-            clearTimeout(this.connectTimeout);
-            this.connectTimeout = -1;
-            this.connections.delete(conn.peer);
 
+        out.on('close', () => {
+            this.connections.delete(out.connection.peer);
             this.updateQuality();
-
-            this.emit('close', conn);
-
-            if (creationSession.alive) {
-                this.retryConnection(conn.peer, useServer);
-            }
-            creationSession.alive = false;
+            this.emit('close', out.connection);
         });
     }
 
     private retry() {
+        if (this.heatbeatTimeout >= 0) clearTimeout(this.heatbeatTimeout);
         this.heatbeatTimeout = window.setTimeout(() => {
             if (!document.hidden) {
                 this.heatbeatTimeout = -1;
@@ -327,22 +296,13 @@ export default class Peer2Peer<T extends PeerEvent> {
                 this.retry();
             } else if (d.type === 'KEY') {
                 const conn = this.connections.get(d.src);
-                if (!conn || conn.connectionType !== 'server') {
-                    const conn = new PeerConnection(d.src, this.peer);
+                if (!conn || conn.connection.connectionType !== 'server') {
+                    const conn = new PeerConnection(d.src, this.peer, false);
                     this.onConnection(conn);
                     if (d.payload) {
                         const p = d.payload;
                         conn.setKey(p);
                     }
-                } else {
-                    if (d.payload) {
-                        conn.setKey(d.payload);
-                    }
-                }
-            } else if (d.type === 'DATA' && d) {
-                const conn = this.connections.get(d.src);
-                if (conn && d.payload) {
-                    conn.decryptPayload(d.payload);
                 }
             }
         });
@@ -357,6 +317,9 @@ export default class Peer2Peer<T extends PeerEvent> {
         if (this.server) {
             if (!this.connections.has(this.server)) {
                 this.createPeer(this.server, this.options?.forceWebsocket ? true : false);
+            } else {
+                this.setStatus('ready');
+                this.setError('none');
             }
         } else {
             this.setStatus('ready');
@@ -372,45 +335,41 @@ export default class Peer2Peer<T extends PeerEvent> {
         if (this.connections.has(conn.peer)) {
             const oldConn = this.connections.get(conn.peer);
             if (oldConn) {
-                console.warn('Connection already existed', conn.peer);
                 oldConn.close();
+                console.warn('Connection already existed', oldConn);
             }
         }
-        this.connections.set(conn.peer, conn);
+        const incom = new Incoming(conn);
+        this.connections.set(conn.peer, incom);
 
-        conn.on('data', async (data: unknown) => {
+        incom.on('data', async (data: unknown) => {
             if (isPeerEvent(data)) {
                 if (data.event === 'eter:connect') {
                     // console.log('GOT PEERS', data.peers);
                     this.createPeer(data.code);
                 } else if (data.event === 'ping') {
-                    conn.send({ event: 'ping', ok: true });
+                    incom.connection.send({ event: 'ping', ok: true });
                 } else {
-                    this.emit('data', data as T, conn);
+                    this.emit('data', data as T, incom.connection);
                 }
             }
         });
-        conn.on('error', (err: Error) => {
-            console.error(err);
-            // if (cbRef.current.onError) cbRef.current.onError(err);
-        });
 
-        conn.on('open', () => {
+        incom.on('connect', () => {
             this.connRetryCount = 0;
             this.updateQuality();
-            conn.send({ event: 'eter:welcome' });
         });
 
-        conn.on('close', () => {
-            this.connections.delete(conn.peer);
+        incom.on('close', () => {
+            this.connections.delete(incom.connection.peer);
             this.updateQuality();
-            //if (cbRef.current.onClose) cbRef.current.onClose(conn);
+            this.emit('close', incom.connection);
         });
     }
 
     private onError(err: PeerError<string>) {
         const type: string = err.type;
-        console.error('Peer', type, err);
+        console.warn('Peer-error:', type);
         switch (type) {
             case 'disconnected':
             case 'network':
@@ -481,8 +440,8 @@ export default class Peer2Peer<T extends PeerEvent> {
         if (this.status === 'ready') {
             const excludeSet = exclude ? new Set(exclude) : undefined;
             for (const conn of this.connections.values()) {
-                if (excludeSet?.has(conn.connectionId)) continue;
-                if (conn.open) conn.send(data);
+                if (excludeSet?.has(conn.connection.connectionId)) continue;
+                if (conn.connection.open) conn.connection.send(data);
             }
         }
     }

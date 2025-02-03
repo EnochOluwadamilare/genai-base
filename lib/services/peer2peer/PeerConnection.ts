@@ -1,13 +1,15 @@
 import EventEmitter from 'eventemitter3';
 import Peer, { DataConnection } from 'peerjs';
-import { PeerConnectionType } from './types';
+import { PeerConnectionType, PeerJSMessage } from './types';
 import { createAsym } from '@base/util/crypto';
 import { base64ToBytes, bytesToBase64 } from '@base/util/base64';
 import P2PException from './error';
 
-export default class PeerConnection extends EventEmitter<'open' | 'data' | 'close' | 'error' | 'crypto'> {
+const WAIT_TIME = 10000;
+
+export default class PeerConnection extends EventEmitter<'open' | 'data' | 'close' | 'error' | 'crypto' | 'timeout'> {
     private dataConnection?: DataConnection;
-    private peerInstance: Peer;
+    public readonly peerInstance: Peer;
     public readonly peer: string;
     private _connType: PeerConnectionType = 'server';
     private pubKey?: string;
@@ -18,6 +20,9 @@ export default class PeerConnection extends EventEmitter<'open' | 'data' | 'clos
     private encrypt?: (data: string) => Promise<[ArrayBuffer, Uint8Array]>;
     private decrypt?: (data: ArrayBuffer, iv: Uint8Array) => Promise<string>;
     private queue?: string[];
+    private connectTimeout = -1;
+    public readonly initiated: boolean;
+    private wsListener?: (d: PeerJSMessage) => void;
 
     public get connectionType() {
         return this._connType;
@@ -28,7 +33,7 @@ export default class PeerConnection extends EventEmitter<'open' | 'data' | 'clos
     }
 
     public get connectionId() {
-        return this.dataConnection ? this.dataConnection.connectionId : this.peer;
+        return this.peer;
     }
 
     /** Quality of the connection from 0 to 3. */
@@ -45,14 +50,26 @@ export default class PeerConnection extends EventEmitter<'open' | 'data' | 'clos
     }
 
     /** Create a connection. If the dataConnection parameter is missing then it uses the websocket as a relay. */
-    constructor(peer: string, peerInstance: Peer, dataConnection?: DataConnection, dropICE?: boolean) {
+    constructor(
+        peer: string,
+        peerInstance: Peer,
+        initiated: boolean,
+        dataConnection?: DataConnection,
+        dropICE?: boolean
+    ) {
         super();
+        this.initiated = initiated;
         this.peerInstance = peerInstance;
         this.dataConnection = dataConnection;
         this.peer = peer;
 
         if (dataConnection) {
+            this._connType = 'relay';
+
             dataConnection.on('open', () => {
+                clearTimeout(this.connectTimeout);
+                this.connectTimeout = -1;
+
                 dataConnection.peerConnection.getStats().then((stats) => {
                     stats.forEach((v) => {
                         if (v.type === 'candidate-pair' && (v.state === 'succeeded' || v.state === 'in-progress')) {
@@ -71,7 +88,7 @@ export default class PeerConnection extends EventEmitter<'open' | 'data' | 'clos
                 });
             });
             dataConnection.on('close', () => {
-                this.emit('close', this);
+                this.emit('close', this, false);
             });
             dataConnection.on('data', (data) => {
                 this.emit('data', data, this);
@@ -81,10 +98,17 @@ export default class PeerConnection extends EventEmitter<'open' | 'data' | 'clos
             });
             dataConnection.on('iceStateChanged', (state: RTCIceConnectionState) => {
                 if (state === 'disconnected') {
-                    if (dataConnection.open) dataConnection.close();
-                    else this.emit('close', this);
+                    if (dataConnection.open) {
+                        dataConnection.close();
+                    } /*else {
+                            this.emit('close', this, false);
+                            this.alive = false;
+                        }*/
                 }
-                if (dropICE && state === 'checking') dataConnection.close();
+                if (dropICE && state === 'checking') {
+                    dataConnection.close();
+                    this.emit('close', this, false);
+                }
             });
         } else {
             this._connType = 'server';
@@ -95,9 +119,39 @@ export default class PeerConnection extends EventEmitter<'open' | 'data' | 'clos
                 this.sendCryptoHandshake();
                 this.emit('crypto');
             });
-            this.peerInstance.on('disconnected', () => {
-                this.emit('close', this);
+            const wslisten = (d: PeerJSMessage) => {
+                if (d.src === this.peer && d.payload) {
+                    if (d.type === 'KEY') {
+                        this.setKey(d.payload);
+                    } else if (d.type === 'DATA') {
+                        this.decryptPayload(d.payload);
+                    }
+                }
+            };
+            this.wsListener = wslisten;
+            this.peerInstance.socket.on('message', wslisten);
+            this.peerInstance.once('disconnected', () => {
+                //if (this.alive) {
+                if (this.wsListener) {
+                    this.peerInstance.socket.off('message', this.wsListener);
+                    this.wsListener = undefined;
+                }
+                this.emit('close', this, false);
+                //}
             });
+        }
+
+        if (this.initiated) {
+            this.connectTimeout = window.setTimeout(() => {
+                this.connectTimeout = -1;
+                if (!this.open) {
+                    console.warn('Connect timeout', this);
+                    this.close(); // Just double check
+                    this.emit('timeout', this);
+                } else {
+                    console.warn('Timeout, but already open');
+                }
+            }, WAIT_TIME);
         }
     }
 
@@ -112,9 +166,12 @@ export default class PeerConnection extends EventEmitter<'open' | 'data' | 'clos
         }
 
         if (this.createCrypto) {
+            if (this.encrypt) console.warn('Key already received');
             const { encrypt, decrypt } = await this.createCrypto(key);
             this.encrypt = encrypt;
             this.decrypt = decrypt;
+            clearTimeout(this.connectTimeout);
+            this.connectTimeout = -1;
             this.emit('open', this);
 
             if (this.queue) {
@@ -132,12 +189,14 @@ export default class PeerConnection extends EventEmitter<'open' | 'data' | 'clos
 
     /** Send our public key to the remote */
     public sendCryptoHandshake() {
-        this.peerInstance.socket.send({
-            type: 'KEY',
-            src: this.peerInstance.id,
-            dst: this.peer,
-            payload: this.pubKey,
-        });
+        if (this.peerInstance.open) {
+            this.peerInstance.socket.send({
+                type: 'KEY',
+                src: this.peerInstance.id,
+                dst: this.peer,
+                payload: this.pubKey,
+            });
+        }
     }
 
     /** For websocket data, decrypt it and emit the event */
@@ -149,8 +208,13 @@ export default class PeerConnection extends EventEmitter<'open' | 'data' | 'clos
 
             const dBuf = await base64ToBytes(d.data);
             const dIv = await base64ToBytes(d.iv);
-            const decrypted = await this.decrypt(new Uint8Array(dBuf), new Uint8Array(dIv));
-            this.emit('data', JSON.parse(decrypted), this);
+
+            try {
+                const decrypted = await this.decrypt(new Uint8Array(dBuf), new Uint8Array(dIv));
+                this.emit('data', JSON.parse(decrypted), this);
+            } catch (e) {
+                console.error('Decryption error');
+            }
         } else {
             const q = this.queue || [];
             q.push(data);
@@ -188,12 +252,29 @@ export default class PeerConnection extends EventEmitter<'open' | 'data' | 'clos
     }
 
     public close() {
-        if (this.dataConnection?.open) {
+        if (this.connectTimeout >= 0) {
+            clearTimeout(this.connectTimeout);
+            this.connectTimeout = -1;
+        }
+        if (this.dataConnection) {
+            this.dataConnection.removeAllListeners();
+            const wasOpen = this.dataConnection.open;
             this.dataConnection.close();
+            if (wasOpen) this.emit('close', this, true);
         } else if (this.open) {
             this.encrypt = undefined;
             this.decrypt = undefined;
-            this.emit('close', this);
+            this.emit('close', this, true);
+        }
+        if (this.wsListener) {
+            this.peerInstance.socket.off('message', this.wsListener);
+            this.wsListener = undefined;
         }
     }
+}
+
+export interface IConnectionIO extends EventEmitter<'connect' | 'retry' | 'close' | 'data'> {
+    direction: 'outgoing' | 'incoming';
+    connection: PeerConnection;
+    close: () => void;
 }

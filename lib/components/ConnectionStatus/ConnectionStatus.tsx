@@ -103,8 +103,7 @@ export default function ConnectionStatus({ api, appName, ready, peer, visibility
                         setP2PCheck(false);
                     }
                 })
-                .catch((e) => {
-                    console.error(e);
+                .catch(() => {
                     setP2PCheck(false);
                 });
         }

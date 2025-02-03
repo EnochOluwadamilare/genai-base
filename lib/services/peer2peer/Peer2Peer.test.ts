@@ -11,7 +11,8 @@ const mockPeer = {
 };
 
 vi.doMock('peerjs', () => ({
-    Peer: function () {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    Peer: function (this: any) {
         this.on = mockPeer.on;
         this.socket = mockPeer.socket;
         this.open = true;
@@ -68,7 +69,7 @@ describe('Peer2Peer Class', () => {
         const conn = p2p.getConnection('test-p1');
         expect(conn).toBeTruthy();
         const openEvent = vi.fn();
-        conn?.on('open', openEvent);
+        conn?.on('connect', openEvent);
         await vi.waitFor(() => {
             expect(openEvent).toHaveBeenCalled();
         });
