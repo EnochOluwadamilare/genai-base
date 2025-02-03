@@ -94,6 +94,9 @@ export default function usePeer<T extends PeerEvent>({
         npeer.on('data', (data: T, conn: Connection<T>) => {
             if (cbRef.current.onData) cbRef.current.onData(data as T, conn);
         });
+        npeer.on('close', (conn: Connection<T>) => {
+            if (cbRef.current.onClose) cbRef.current.onClose(conn);
+        });
 
         setPeer(npeer);
 
