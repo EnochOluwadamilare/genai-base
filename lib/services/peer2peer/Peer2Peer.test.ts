@@ -42,7 +42,7 @@ describe('Peer2Peer Class', () => {
         expect(openEvent).toHaveBeenCalled();
         expect(mockPeer.socket.addListener).toHaveBeenCalledWith('message', expect.any(Function));
         expect(p2p.status).toBe('ready');
-        expect(p2p.quality).toBe(0);
+        expect(p2p.quality).toBe(1);
     });
 
     it('will listen for a new p2p connection', async ({ expect }) => {

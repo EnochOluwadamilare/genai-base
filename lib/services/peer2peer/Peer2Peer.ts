@@ -135,7 +135,7 @@ export default class Peer2Peer<T extends PeerEvent> {
                     bestQuality = Math.max(bestQuality, c.connection.quality);
                 }
             });
-            this._quality = bestQuality;
+            this._quality = Math.max(bestQuality, 1);
             this.status = 'ready';
         }
         this.emit('quality', this._quality);

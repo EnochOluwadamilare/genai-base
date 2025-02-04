@@ -62,7 +62,7 @@ export default class Outgoing extends EventEmitter<'connect' | 'retry' | 'close'
     private addHandlers() {
         this._connection.on('timeout', () => {
             this.emit('retry');
-            this.recreate();
+            this.recreate(true);
         });
 
         this._connection.on('open', () => {
