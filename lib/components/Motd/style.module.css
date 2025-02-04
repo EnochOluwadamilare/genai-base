@@ -1,0 +1,29 @@
+@value bgColourful3,bgColourful2,bgSubdued1 from "../../../public/colours.module.css";
+
+.motd {
+    width: 100%;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: white;
+    padding: 0.8rem;
+    text-align: center;
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+
+.info {
+    composes: motd;
+    background: bgSubdued1;
+    color: #444;
+}
+
+.warn {
+    composes: motd;
+    background: bgColourful2;
+}
+
+.error {
+    composes: motd;
+    background: bgColourful3;
+}
