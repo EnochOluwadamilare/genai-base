@@ -71,15 +71,20 @@ export default function ConnectionStatus({ api, appName, ready, peer, visibility
     // Get permissions for webRTC
     useEffect(() => {
         if (ice && webrtc === 'unset') {
-            navigator?.mediaDevices
-                ?.getUserMedia({ video: true })
-                .then((stream) => {
-                    streamRef.current = stream;
-                    setWebRTC('full');
-                })
-                .catch(() => {
-                    setWebRTC('relay');
-                });
+            if (navigator?.mediaDevices) {
+                navigator.mediaDevices
+                    .getUserMedia({ video: true })
+                    .then((stream) => {
+                        streamRef.current = stream;
+                        setWebRTC('full');
+                    })
+                    .catch(() => {
+                        setWebRTC('relay');
+                    });
+                // Happens if in non-secure context
+            } else {
+                setWebRTC('relay');
+            }
         }
     }, [ice, webrtc, setWebRTC]);
 

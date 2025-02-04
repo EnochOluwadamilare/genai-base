@@ -112,13 +112,18 @@ export default class PeerConnection extends EventEmitter<'open' | 'data' | 'clos
             });
         } else {
             this._connType = 'server';
-            createAsym().then(({ createSymCrypto, publicKey }) => {
-                this.createCrypto = createSymCrypto;
-                this.pubKey = publicKey;
+            createAsym()
+                .then(({ createSymCrypto, publicKey }) => {
+                    this.createCrypto = createSymCrypto;
+                    this.pubKey = publicKey;
 
-                this.sendCryptoHandshake();
-                this.emit('crypto');
-            });
+                    this.sendCryptoHandshake();
+                    this.emit('crypto');
+                })
+                .catch(() => {
+                    this.emit('error', { type: 'no-crypto' }, this);
+                    this.close();
+                });
             const wslisten = (d: PeerJSMessage) => {
                 if (d.src === this.peer && d.payload) {
                     if (d.type === 'KEY') {
