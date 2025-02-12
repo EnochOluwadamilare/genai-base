@@ -9,3 +9,9 @@ export default {
 
 export const Small: Story = () => <Spinner size="small" />;
 export const Large: Story = () => <Spinner size="large" />;
+export const Disabled: Story = () => (
+    <Spinner
+        size="small"
+        disabled
+    />
+);
