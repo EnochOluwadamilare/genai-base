@@ -16,6 +16,7 @@ export default class Outgoing extends EventEmitter<'connect' | 'retry' | 'close'
     private _connection: PeerConnection;
     private timeout = -1;
     private retryCount = 0;
+    private timeouts = 0;
     private options?: OutgoingOptions;
     public readonly direction: 'outgoing' | 'incoming' = 'outgoing';
     private connectionCount = 0;
@@ -62,11 +63,13 @@ export default class Outgoing extends EventEmitter<'connect' | 'retry' | 'close'
     private addHandlers() {
         this._connection.on('timeout', () => {
             this.emit('retry');
-            this.recreate(true);
+            this.timeouts += 1;
+            this.recreate(this.timeouts > 1);
         });
 
         this._connection.on('open', () => {
             this.retryCount = 0;
+            this.timeouts = 0;
             this._connection.send({ event: 'eter:join' });
             this.connectionCount += 1;
             this._status = 'ready';
