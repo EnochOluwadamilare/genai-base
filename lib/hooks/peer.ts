@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState } from 'react';
 import { iceConfig, webrtcActive } from '../state/webrtcState';
 import { useRecoilState, useRecoilValue } from 'recoil';
-import Peer2Peer, { P2POptions } from '@base/services/peer2peer/Peer2Peer';
+import Peer2Peer, { type P2POptions } from '@base/services/peer2peer/Peer2Peer';
 import type { Connection, PeerEvent, PeerStatus } from '@base/services/peer2peer/types';
 
 interface Callbacks<T extends PeerEvent> {
@@ -105,15 +105,15 @@ export default function usePeer<T extends PeerEvent>({
         };
     }, [code, server, webrtc, ice, host, key, port, secure, disabled, setWebRTC, forceTURN, forceWebsocket]);
 
-    useEffect(() => {
-        /*const tabClose = () => {
+    //useEffect(() => {
+    /*const tabClose = () => {
             if (connRef.current?.sender) connRef.current?.sender({ event: 'eter:close' });
         };
         window.addEventListener('beforeunload', tabClose);
         return () => {
             window.removeEventListener('beforeunload', tabClose);
         };*/
-    }, []);
+    //}, []);
 
     return {
         send: peer ? peer.boundSendAll : undefined,

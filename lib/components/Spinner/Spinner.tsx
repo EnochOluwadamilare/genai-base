@@ -11,6 +11,7 @@ export default function Spinner({ size, disabled }: Props) {
             className={`${size === 'large' ? style.largeSpinner : style.spinner} ${
                 disabled ? style.disabled : style.animated
             }`}
+            data-testid="spinner"
         >
             <div></div>
             <div></div>

@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { PeerEvent, PeerStatus } from '@base/services/peer2peer/types';
 import Peer2Peer from '@base/services/peer2peer/Peer2Peer';
 import SignalWifiBadIcon from '@mui/icons-material/SignalWifiBad';
+import { checkP2P } from './check';
 
 const FAILURE_TIMEOUT = 20000;
 
@@ -36,7 +37,13 @@ export default function ConnectionStatus({ api, appName, ready, peer, visibility
         if (peer) {
             peer.on('status', setStatus);
             peer.on('quality', setQuality);
-            //peer.on('error', setError);
+            setStatus(peer.status);
+            setQuality(peer.quality);
+
+            return () => {
+                peer.off('status', setStatus);
+                peer.off('quality', setQuality);
+            };
         } else {
             setQuality(0);
             setStatus('connecting');
@@ -53,9 +60,6 @@ export default function ConnectionStatus({ api, appName, ready, peer, visibility
     }, [ice, setIce, api, appName]);
 
     useEffect(() => {
-        /*if (status === 'connecting') {
-            setWebRTC('unset');
-        }*/
         if (status !== 'ready') {
             const t = setTimeout(() => {
                 setFailed(true);
@@ -99,18 +103,10 @@ export default function ConnectionStatus({ api, appName, ready, peer, visibility
     }, [ready, status]);
 
     useEffect(() => {
-        if (ready && peer && !noCheck) {
-            fetch(`${api}/checkP2P/${peer.code}`)
-                .then((res) => {
-                    if (res.ok) {
-                        setP2PCheck(true);
-                    } else {
-                        setP2PCheck(false);
-                    }
-                })
-                .catch(() => {
-                    setP2PCheck(false);
-                });
+        if (ready && peer && !noCheck && peer.code) {
+            checkP2P(api, peer.code).then((res) => {
+                setP2PCheck(res);
+            });
         }
     }, [ready, peer, api, noCheck]);
 

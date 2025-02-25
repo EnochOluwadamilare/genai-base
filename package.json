@@ -31,7 +31,8 @@
         "preview": "vite preview",
         "test": "vitest",
         "ladle": "npx ladle serve",
-        "ci:test": "vitest --coverage --reporter=junit --outputFile=junit.xml"
+        "ci:test": "vitest --coverage --reporter=junit --outputFile=junit.xml",
+        "coverage": "vitest run --coverage"
     },
     "peerDependencies": {
         "@emotion/react": "^11.14.0",

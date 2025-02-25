@@ -29,6 +29,7 @@ export default defineConfig({
         coverage: {
             provider: 'v8',
             reporter: ['cobertura', 'html'],
+            include: ['lib/**/*.{ts,tsx}'],
         },
     },
     resolve: {
