@@ -11,7 +11,7 @@ import Peer2Peer from '@base/services/peer2peer/Peer2Peer';
 import SignalWifiBadIcon from '@mui/icons-material/SignalWifiBad';
 import { checkP2P } from './check';
 
-const FAILURE_TIMEOUT = 20000;
+const FAILURE_TIMEOUT = 60000;
 
 interface Props {
     api: string;
@@ -70,7 +70,7 @@ export default function ConnectionStatus({ api, appName, ready, peer, visibility
         } else {
             setFailed(false);
         }
-    }, [status, setWebRTC]);
+    }, [status]);
 
     // Get permissions for webRTC
     useEffect(() => {
@@ -115,7 +115,9 @@ export default function ConnectionStatus({ api, appName, ready, peer, visibility
             {(visibility === undefined || quality <= visibility) && (
                 <div
                     className={
-                        quality === 3
+                        status === 'connecting' && !failed
+                            ? style.containerConnecting
+                            : quality === 3
                             ? style.containerSuccess
                             : quality === 2
                             ? style.containerMedium

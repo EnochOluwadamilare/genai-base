@@ -15,12 +15,12 @@ export default function FlashWifi() {
     return on ? (
         <WifiIcon
             fontSize="large"
-            htmlColor="red"
+            color="inherit"
         />
     ) : (
         <SignalWifi0BarIcon
             fontSize="large"
-            htmlColor="red"
+            color="inherit"
         />
     );
 }

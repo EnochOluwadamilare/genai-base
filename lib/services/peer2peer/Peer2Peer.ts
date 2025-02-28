@@ -48,12 +48,17 @@ type P2POpenEvent = {
     open: [];
 };
 
+type P2PRetryEvent = {
+    retry: [];
+};
+
 type P2PEvents<T extends PeerEvent> = P2PDataEvent<T> &
     P2PErrorEvent &
     P2PStatusEvent &
     P2PConnectEvent<T> &
     P2PCloseEvent<T> &
     P2POpenEvent &
+    P2PRetryEvent &
     P2PQualityEvent;
 
 export interface P2POptions {
@@ -192,6 +197,7 @@ export default class Peer2Peer<T extends PeerEvent> {
     /** Completely restart the connection from scratch. */
     public reset() {
         this.destroy();
+        this.emit('retry');
         this.peer = this.createPeerServer();
     }
 
@@ -376,15 +382,6 @@ export default class Peer2Peer<T extends PeerEvent> {
         switch (type) {
             case 'disconnected':
             case 'network':
-                clearTimeout(this.retryTimeout);
-                this.retryTimeout = window.setTimeout(() => {
-                    try {
-                        this.peer.reconnect();
-                    } catch (e) {
-                        this.setError('peer-not-found');
-                    }
-                }, expBackoff(this.peerRetryCount++));
-                break;
             case 'server-error':
                 clearTimeout(this.retryTimeout);
                 this.retryTimeout = window.setTimeout(() => {
