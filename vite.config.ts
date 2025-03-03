@@ -13,7 +13,7 @@ export default defineConfig({
         react(),
         libInjectCss(),
         dts({
-            tsConfigFilePath: './tsconfig.build.json',
+            tsconfigPath: './tsconfig.build.json',
             include: ['lib'],
             rollupTypes: false,
             beforeWriteFile: (filePath, content) => ({
