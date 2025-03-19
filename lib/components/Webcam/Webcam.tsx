@@ -73,13 +73,12 @@ export default function Webcam({
                     previousTimeRef.current = timestamp;
                 }
 
-                if (onPostprocess) {
-                    await onPostprocess(webcam.canvas);
-                }
-
                 const ctx = webcamRef.current?.getContext('2d');
                 if (ctx) {
                     ctx.drawImage(webcam.canvas, 0, 0);
+                    if (onPostprocess && webcamRef.current) {
+                        await onPostprocess(webcamRef.current);
+                    }
                 }
             }
 
