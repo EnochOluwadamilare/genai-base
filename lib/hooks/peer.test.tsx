@@ -1,8 +1,8 @@
 import { describe, it, vi } from 'vitest';
 import { render } from '@testing-library/react';
 import usePeer from './peer';
-import { TestWrapper } from '@base/main';
 import { iceConfig, webrtcActive } from '@base/state/webrtcState';
+import { createStore, Provider } from 'jotai';
 
 const { MockPeer2Peer } = vi.hoisted(() => {
     return {
@@ -24,18 +24,17 @@ describe('usePeer', () => {
             return null;
         }
 
+        const store = createStore();
+        store.set(iceConfig, {
+            expiresOn: new Date(),
+            iceServers: [],
+        });
+        store.set(webrtcActive, 'full');
+
         render(
-            <TestWrapper
-                initializeState={({ set }) => {
-                    set(iceConfig, {
-                        expiresOn: new Date(),
-                        iceServers: [],
-                    });
-                    set(webrtcActive, 'full');
-                }}
-            >
+            <Provider store={store}>
                 <Component />
-            </TestWrapper>
+            </Provider>
         );
 
         expect(MockPeer2Peer).toHaveBeenCalledWith(

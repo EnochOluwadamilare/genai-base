@@ -1,9 +1,10 @@
 import { beforeEach, describe, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import ConnectionStatus from './ConnectionStatus';
-import { Peer2Peer, PeerEvent, TestWrapper } from '@base/main';
+import { Peer2Peer, PeerEvent } from '@base/main';
 import { webrtcActive } from '@base/state/webrtcState';
 import { CommunicationRelayConfiguration } from './ice';
+import { createStore, Provider } from 'jotai';
 
 const { mockGetRTConfig, mockCheck } = vi.hoisted(() => {
     return {
@@ -35,14 +36,14 @@ describe('ConnectionStatus', () => {
             status: 'connecting',
         } as unknown as Peer2Peer<PeerEvent>;
         render(
-            <TestWrapper>
+            <Provider>
                 <ConnectionStatus
                     api="API"
                     appName="TEST"
                     ready={false}
                     peer={mockPeer}
                 />
-            </TestWrapper>
+            </Provider>
         );
 
         expect(mockGetRTConfig).toHaveBeenCalled();
@@ -51,13 +52,13 @@ describe('ConnectionStatus', () => {
 
     it('works without a peer object', ({ expect }) => {
         render(
-            <TestWrapper>
+            <Provider>
                 <ConnectionStatus
                     api="API"
                     appName="TEST"
                     ready={false}
                 />
-            </TestWrapper>
+            </Provider>
         );
 
         expect(mockGetRTConfig).toHaveBeenCalled();
@@ -82,8 +83,11 @@ describe('ConnectionStatus', () => {
             },
         });
 
+        const store = createStore();
+        store.set(webrtcActive, 'unset');
+
         render(
-            <TestWrapper initializeState={({ set }) => set(webrtcActive, 'unset')}>
+            <Provider store={store}>
                 <ConnectionStatus
                     api="API"
                     appName="TEST"
@@ -91,7 +95,7 @@ describe('ConnectionStatus', () => {
                     peer={mockPeer}
                     noCheck
                 />
-            </TestWrapper>
+            </Provider>
         );
 
         expect(mockGetRTConfig).toHaveBeenCalled();
@@ -109,14 +113,14 @@ describe('ConnectionStatus', () => {
             code: '1234',
         } as unknown as Peer2Peer<PeerEvent>;
         render(
-            <TestWrapper>
+            <Provider>
                 <ConnectionStatus
                     api="API"
                     appName="TEST"
                     ready={true}
                     peer={mockPeer}
                 />
-            </TestWrapper>
+            </Provider>
         );
 
         await vi.waitFor(() => expect(mockCheck).toHaveBeenCalled());

@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import { iceConfig, webrtcActive } from '../state/webrtcState';
-import { useRecoilState, useRecoilValue } from 'recoil';
+import { useAtom, useAtomValue } from 'jotai';
 import Peer2Peer, { type P2POptions } from '@base/services/peer2peer/Peer2Peer';
 import type { Connection, PeerEvent, PeerStatus } from '@base/services/peer2peer/types';
 
@@ -42,8 +42,8 @@ export default function usePeer<T extends PeerEvent>({
 }: Props<T>) {
     const [peer, setPeer] = useState<Peer2Peer<T>>();
     const cbRef = useRef<Callbacks<T>>({});
-    const [webrtc, setWebRTC] = useRecoilState(webrtcActive);
-    const ice = useRecoilValue(iceConfig);
+    const [webrtc, setWebRTC] = useAtom(webrtcActive);
+    const ice = useAtomValue(iceConfig);
     const [status, setStatus] = useState<PeerStatus>('connecting');
 
     useEffect(() => {

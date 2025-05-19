@@ -27,7 +27,6 @@ export {
 } from './util/canvas';
 export { loadZipFile, saveZipFile, createZipBlob } from './util/zip';
 export type { ZipData } from './util/zip';
-export { default as TestWrapper } from './util/TestWrapper';
 export { useTabActive } from './hooks/useTabActive';
 export { default as Spinner } from './components/Spinner/Spinner';
 export { default as Privacy } from './components/Privacy/Privacy';

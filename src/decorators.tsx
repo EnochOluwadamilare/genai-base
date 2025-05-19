@@ -1,7 +1,7 @@
 import { theme } from '@base/main';
 import { StyledEngineProvider, ThemeProvider } from '@mui/material/styles';
 import { StoryDecorator } from '@ladle/react';
-import { RecoilRoot } from 'recoil';
+import { Provider } from 'jotai';
 
 export const Theme: StoryDecorator = (Component) => (
     <StyledEngineProvider injectFirst>
@@ -12,7 +12,7 @@ export const Theme: StoryDecorator = (Component) => (
 );
 
 export const Recoil: StoryDecorator = (Component) => (
-    <RecoilRoot>
+    <Provider>
         <Component />
-    </RecoilRoot>
+    </Provider>
 );

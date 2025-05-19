@@ -1,6 +1,6 @@
 import { iceConfig, webrtcActive } from '../../state/webrtcState';
 import { useEffect, useRef, useState } from 'react';
-import { useRecoilState } from 'recoil';
+import { useAtom } from 'jotai';
 import { getRTConfig } from './ice';
 import style from './style.module.css';
 import WifiIcon from '@mui/icons-material/Wifi';
@@ -24,8 +24,8 @@ interface Props {
 
 export default function ConnectionStatus({ api, appName, ready, peer, visibility, noCheck }: Props) {
     const { t } = useTranslation();
-    const [ice, setIce] = useRecoilState(iceConfig);
-    const [webrtc, setWebRTC] = useRecoilState(webrtcActive);
+    const [ice, setIce] = useAtom(iceConfig);
+    const [webrtc, setWebRTC] = useAtom(webrtcActive);
     const streamRef = useRef<MediaStream | undefined>();
     const [status, setStatus] = useState<PeerStatus>('connecting');
     const [quality, setQuality] = useState(0);
