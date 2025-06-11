@@ -1,6 +1,7 @@
 {
-    "name": "@knicos/genai-base",
-    "version": "0.0.8",
+    "name": "@genai-fi/base",
+    "version": "1.0.0",
+    "license": "MIT",
     "type": "module",
     "main": "dist/main.js",
     "types": "dist/main.d.ts",
