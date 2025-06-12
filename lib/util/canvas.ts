@@ -34,6 +34,8 @@ export function cropTo(
     return canvas;
 }
 
+const isTest = globalThis?.process?.env?.NODE_ENV === 'test';
+
 export function canvasFromFile(file: File, size = 224) {
     return new Promise<HTMLCanvasElement>((resolve, reject) => {
         const reader = new FileReader();
@@ -55,7 +57,7 @@ export function canvasFromFile(file: File, size = 224) {
             img.src = reader.result as string;
 
             // Note: Here to integration tests. "onload" is not called in jest.
-            if (global?.process?.env?.NODE_ENV === 'test') img.onload(new Event('onload'));
+            if (isTest) img.onload(new Event('onload'));
         };
         reader.readAsDataURL(file);
     });
