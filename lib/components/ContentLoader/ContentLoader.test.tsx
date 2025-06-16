@@ -19,7 +19,7 @@ describe('ContentLoader Component', () => {
             />
         );
 
-        waitFor(() => {
+        await waitFor(() => {
             expect(loadFn).toHaveBeenCalledWith({
                 testData: {
                     name: 'Test2',

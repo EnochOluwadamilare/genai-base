@@ -5,6 +5,7 @@ import { Peer2Peer, PeerEvent } from '@base/main';
 import { webrtcActive } from '@base/state/webrtcState';
 import { CommunicationRelayConfiguration } from './ice';
 import { createStore, Provider } from 'jotai';
+import { PeerProvider } from '@base/hooks/peer';
 
 const { mockGetRTConfig, mockCheck } = vi.hoisted(() => {
     return {
@@ -37,12 +38,12 @@ describe('ConnectionStatus', () => {
         } as unknown as Peer2Peer<PeerEvent>;
         render(
             <Provider>
-                <ConnectionStatus
-                    api="API"
-                    appName="TEST"
-                    ready={false}
-                    peer={mockPeer}
-                />
+                <PeerProvider value={mockPeer}>
+                    <ConnectionStatus
+                        api="API"
+                        appName="TEST"
+                    />
+                </PeerProvider>
             </Provider>
         );
 
@@ -56,7 +57,6 @@ describe('ConnectionStatus', () => {
                 <ConnectionStatus
                     api="API"
                     appName="TEST"
-                    ready={false}
                 />
             </Provider>
         );
@@ -88,13 +88,13 @@ describe('ConnectionStatus', () => {
 
         render(
             <Provider store={store}>
-                <ConnectionStatus
-                    api="API"
-                    appName="TEST"
-                    ready={false}
-                    peer={mockPeer}
-                    noCheck
-                />
+                <PeerProvider value={mockPeer}>
+                    <ConnectionStatus
+                        api="API"
+                        appName="TEST"
+                        noCheck
+                    />
+                </PeerProvider>
             </Provider>
         );
 
@@ -114,12 +114,12 @@ describe('ConnectionStatus', () => {
         } as unknown as Peer2Peer<PeerEvent>;
         render(
             <Provider>
-                <ConnectionStatus
-                    api="API"
-                    appName="TEST"
-                    ready={true}
-                    peer={mockPeer}
-                />
+                <PeerProvider value={mockPeer}>
+                    <ConnectionStatus
+                        api="API"
+                        appName="TEST"
+                    />
+                </PeerProvider>
             </Provider>
         );
 

@@ -1,0 +1,98 @@
+.MuiPopper-root {
+    font-size: 1rem;
+    padding-left: 5px;
+}
+
+.MuiTooltip-tooltip {
+    font-size: 1rem;
+    padding: 0.3em 0.8rem;
+    background: #5f7377;
+    border-radius: 6px;
+}
+
+/*.MuiDialog-root {
+    z-index: 2100;
+}*/
+
+.MuiTooltip-arrow {
+    color: #5f7377;
+}
+
+.MuiDialogTitle-root {
+    border-bottom: 2px solid #008297;
+    padding: 0.5rem 1rem;
+    background: #e5f6fd;
+    margin-bottom: 0.5rem;
+}
+
+.MuiBackdrop-root {
+    background: rgba(255, 255, 255, 0.7);
+}
+
+.MuiDialog-paper {
+    border-radius: 6px;
+}
+
+.MuiMenu-paper {
+    box-shadow: none;
+    box-shadow: 1px 1px 8px #888;
+}
+
+.MuiDialogContent-root {
+    font-family: Andika;
+}
+
+.MuiSpeedDialAction-staticTooltipLabel {
+    width: max-content;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    color: white;
+    background: #5f7377;
+    border-radius: 6px;
+}
+
+h1 {
+    color: #444;
+}
+
+.MuiChartsLegend-root {
+    transform: translate(30px, 0);
+}
+
+.MuiDataGrid-toolbarContainer {
+    border-radius: 2rem;
+    background: #444;
+    color: white;
+    padding: 0;
+    align-items: center;
+    padding-right: 2rem;
+    margin-bottom: 1rem;
+}
+
+.MuiChartsLegend-series text {
+    font-size: 0.8rem !important;
+}
+
+.MuiSimpleTreeView-root {
+    align-self: flex-start;
+    width: 100%;
+}
+
+.MuiDataGrid-columnHeaderTitle {
+    font-weight: bold;
+}
+
+.MuiDataGrid-root {
+    border-style: none;
+}
+
+.MuiButtonBase-root {
+    text-transform: none;
+}
+
+.code {
+    font-family: 'Courier New', Courier, monospace;
+    padding: 0.5rem;
+    background: #eee;
+    overflow: scroll;
+    font-size: 10pt;
+}

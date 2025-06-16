@@ -44,7 +44,11 @@ export default function ContentLoader({ content, onLoaded, onLoad }: Props) {
                     setStatus('loading');
                     setProgress(undefined);
 
-                    const loadPromises = blobs.map((blob) => loadZipFile(blob).then((d) => onLoad(d)));
+                    const loadPromises = blobs.map((blob) =>
+                        loadZipFile(blob).then((d) => {
+                            onLoad(d);
+                        })
+                    );
                     Promise.all(loadPromises)
                         .then(() => {
                             setStatus('done');

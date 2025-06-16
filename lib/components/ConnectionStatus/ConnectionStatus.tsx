@@ -6,24 +6,23 @@ import style from './style.module.css';
 import WifiIcon from '@mui/icons-material/Wifi';
 import FlashWifi from './FlashWifi';
 import { useTranslation } from 'react-i18next';
-import { PeerEvent, PeerStatus } from '@base/services/peer2peer/types';
-import Peer2Peer from '@base/services/peer2peer/Peer2Peer';
+import { PeerStatus } from '@base/services/peer2peer/types';
 import SignalWifiBadIcon from '@mui/icons-material/SignalWifiBad';
 import { checkP2P } from './check';
+import { usePeerObject } from '@base/hooks/peer';
 
 const FAILURE_TIMEOUT = 60000;
 
 interface Props {
     api: string;
     appName: string;
-    ready?: boolean;
-    peer?: Peer2Peer<PeerEvent>;
     visibility?: number;
     noCheck?: boolean;
 }
 
-export default function ConnectionStatus({ api, appName, ready, peer, visibility, noCheck }: Props) {
+export default function ConnectionStatus({ api, appName, visibility, noCheck }: Props) {
     const { t } = useTranslation();
+    const peer = usePeerObject();
     const [ice, setIce] = useAtom(iceConfig);
     const [webrtc, setWebRTC] = useAtom(webrtcActive);
     const streamRef = useRef<MediaStream | undefined>();
@@ -32,6 +31,8 @@ export default function ConnectionStatus({ api, appName, ready, peer, visibility
     const [, setP2PCheck] = useState(false);
     //const [error, setError] = useState<PeerErrorType>('none');
     const [failed, setFailed] = useState(false);
+
+    const ready = status === 'ready';
 
     useEffect(() => {
         if (peer) {
