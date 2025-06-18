@@ -20,6 +20,7 @@ interface Props extends React.HTMLProps<HTMLDivElement> {
     id?: string;
     noPadding?: boolean;
     contentStyle?: CSSProperties;
+    headerColour?: string;
 }
 
 const TextField = styled(MTextField)({
@@ -43,6 +44,7 @@ export function Widget({
     noPadding,
     active,
     contentStyle,
+    headerColour,
     ...props
 }: Props) {
     const { t } = useTranslation();
@@ -114,7 +116,10 @@ export function Widget({
             aria-label={props['aria-label'] || title}
         >
             {title !== undefined && (
-                <header className={style.widget_header}>
+                <header
+                    className={style.widget_header}
+                    style={headerColour ? { backgroundColor: headerColour } : {}}
+                >
                     <h1 className={style.widget_title}>
                         {!setTitle && title}
                         {setTitle && (

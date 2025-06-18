@@ -14,12 +14,15 @@ export default function WorkflowLayout({ children, connections }: Props) {
 
     useEffect(() => {
         if (wkspaceRef.current) {
-            observer.current = new ResizeObserver(() => {
+            const f = () => {
                 if (wkspaceRef.current) {
                     const nodes = extractNodesFromElements(wkspaceRef.current as HTMLElement);
-                    setLines(generateLines(nodes, connections));
+                    const lines = generateLines(nodes, connections);
+
+                    setLines(lines);
                 }
-            });
+            };
+            observer.current = new ResizeObserver(f);
             observer.current.observe(wkspaceRef.current);
             const children = wkspaceRef.current.children;
             if (children) {
@@ -28,6 +31,9 @@ export default function WorkflowLayout({ children, connections }: Props) {
                     observer.current.observe(child);
                 }
             }
+
+            f();
+
             return () => {
                 observer.current?.disconnect();
             };
@@ -40,7 +46,9 @@ export default function WorkflowLayout({ children, connections }: Props) {
                 className={style.container}
                 ref={wkspaceRef}
                 style={{
-                    gridTemplateColumns: `repeat(${Array.isArray(children) ? children.filter((c) => !!c).length : 1}, max-content)`,
+                    gridTemplateColumns: `repeat(${
+                        Array.isArray(children) ? children.filter((c) => !!c).length : 1
+                    }, max-content)`,
                 }}
             >
                 <SvgLayer lines={lines} />

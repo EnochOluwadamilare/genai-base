@@ -2,7 +2,7 @@ import { PieChart } from '@mui/x-charts';
 import style from './style.module.css';
 
 interface Props {
-    value: number;
+    value: number; /// Must be between 0 and 1
     color?: 'primary' | 'grey';
 }
 

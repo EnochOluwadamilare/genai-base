@@ -8,11 +8,15 @@ export interface INode {
     id: string;
 }
 
+const isTest = globalThis?.process?.env?.NODE_ENV === 'test';
+
 export function extractNodesFromElements(div: HTMLElement, initial?: Map<string, INode[]>) {
     const result = initial || new Map<string, INode[]>();
+
     for (let i = 0; i < div.children.length; ++i) {
         const child = div.children[i] as HTMLElement;
         const widgetType = child.getAttribute('data-widget');
+
         if (widgetType === 'container') {
             extractNodesFromElements(child, result);
         } else if (widgetType) {
@@ -21,7 +25,7 @@ export function extractNodesFromElements(div: HTMLElement, initial?: Map<string,
             }
             const width = child.offsetWidth;
             const height = child.offsetHeight;
-            if (width > 0 && height > 0) {
+            if (isTest || (width > 0 && height > 0)) {
                 result
                     .get(widgetType)
                     ?.push({ x: child.offsetLeft, y: child.offsetTop, width, height, id: child.id || 'noid' });

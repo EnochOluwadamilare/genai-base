@@ -10,8 +10,9 @@
     flex-shrink: 0;
     animation: fadein 0.5s 1;
     box-sizing: border-box;
-    border: 1px solid white;
+    /*border: 1px solid white;*/
     position: relative;
+    overflow: hidden;
 }
 
 @media only screen and (max-height: 500px), (max-width: 700px) {
@@ -49,7 +50,7 @@
 .widget_header {
     display: flex;
     justify-content: left;
-    border-bottom: 1px solid #008297;
+    /*border-bottom: 1px solid #008297;*/
     padding: 0.6rem 1rem;
     align-items: center;
 }

@@ -33,6 +33,7 @@ export default function SvgLayer({ lines }: Props) {
                 const active = true; // activeLines.has(`${line.id1}-out`) && activeLines.has(`${line.id2}-in`);
                 return (
                     <path
+                        data-testid={`line-${line.id1}-${line.id2}`}
                         key={ix}
                         d={`M ${line.x1} ${line.y1} C ${line.x1 + dx} ${line.y1 + dy}, ${line.x2 - dx} ${
                             line.y2 - dy

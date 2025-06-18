@@ -35,7 +35,15 @@ export { default as AlertPara } from './components/AlertPara/AlertPara';
 export { default as QRCode } from './components/QRCode/QRCode';
 export { default as Webcam } from './components/Webcam/Webcam';
 export { default as ContentLoader } from './components/ContentLoader/ContentLoader';
-export { WorkflowLayout, type IConnection, Widget } from './components/WorkflowLayout';
+export {
+    WorkflowLayout,
+    type IConnection,
+    Widget,
+    SvgLayer,
+    type ILine,
+    generateLines,
+    extractNodesFromElements,
+} from './components/WorkflowLayout';
 export { default as LangSelect } from './components/LangSelect/LangSelect';
 export { IconMenu, IconMenuInline, IconMenuItem, Spacer } from './components/IconMenu';
 export { default as PercentageBar } from './components/PercentageBar/PercentageBar';
