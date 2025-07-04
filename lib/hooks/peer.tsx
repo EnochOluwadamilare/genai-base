@@ -61,7 +61,7 @@ export function Peer<T extends PeerEvent>({
         const npeer = new Peer2Peer<T>(
             code,
             host || 'api2.gen-ai.fi',
-            secure || true,
+            secure ?? true,
             peerkey,
             port || 443,
             ice,

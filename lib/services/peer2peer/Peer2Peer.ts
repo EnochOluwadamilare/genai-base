@@ -176,7 +176,7 @@ export default class Peer2Peer<T extends PeerEvent> {
             port: this.port,
             debug: 0,
             config: {
-                iceServers: [this.ice.iceServers[0]],
+                iceServers: this.ice.iceServers.slice(0, 1),
                 sdpSemantics: 'unified-plan',
                 iceTransportPolicy: this.relay || this.options?.forceTURN ? 'relay' : undefined,
             },
