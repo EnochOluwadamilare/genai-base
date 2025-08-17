@@ -6,41 +6,37 @@ import { IconButton } from '@mui/material';
 import CameraswitchIcon from '@mui/icons-material/Cameraswitch';
 import { WebcamClass } from './webcamClass';
 
-interface Props {
-    interval?: number;
-    capture?: boolean;
-    disable?: boolean;
+interface Callbacks {
     onCapture?: (image: HTMLCanvasElement) => void | Promise<void>;
     onPreprocess?: (image: HTMLCanvasElement) => void | Promise<void>;
     onPostprocess?: (image: HTMLCanvasElement) => void | Promise<void>;
     onActivated?: (available: boolean) => void;
     onFatal?: () => void;
+}
+
+interface Props extends Callbacks {
+    interval?: number;
+    capture?: boolean;
+    disable?: boolean;
     direct?: boolean;
     hidden?: boolean;
     size: number;
 }
 
-export default function Webcam({
-    interval,
-    capture,
-    onCapture,
-    disable,
-    direct,
-    hidden,
-    onPreprocess,
-    onPostprocess,
-    onActivated,
-    onFatal,
-    size,
-}: Props) {
+export default function Webcam({ interval, capture, disable, direct, hidden, size, ...props }: Props) {
     const { t } = useTranslation();
     const [webcam, setWebcam] = useState<WebcamClass | null>(null);
     const webcamRef = useRef<HTMLCanvasElement>(null);
     const requestRef = useRef(-1);
     const previousTimeRef = useRef(0);
     const loopRef = useRef<(n: number) => Promise<void>>();
+    const callbacks = useRef<Callbacks>({});
     const [multiple, setMultiple] = useState(false);
     const [facing, setFacing] = useState(false);
+
+    callbacks.current = props;
+
+    const actualSize = Math.floor(size);
 
     useEffect(() => {
         loopRef.current = async (timestamp: number) => {
@@ -54,13 +50,13 @@ export default function Webcam({
                 webcam.update();
                 const actualInterval = interval !== undefined ? interval : 1000.0;
 
-                if (onPreprocess) {
-                    await onPreprocess(webcam.canvas);
+                if (callbacks.current.onPreprocess) {
+                    await callbacks.current.onPreprocess(webcam.canvas);
                 }
 
-                if (capture && onCapture && timestamp - previousTimeRef.current >= actualInterval) {
+                if (capture && callbacks.current.onCapture && timestamp - previousTimeRef.current >= actualInterval) {
                     if (direct && webcam.canvas) {
-                        await onCapture(webcam.canvas);
+                        await callbacks.current.onCapture(webcam.canvas);
                     } else {
                         const newImage = document.createElement('canvas');
                         newImage.width = webcam.canvas.width;
@@ -68,7 +64,7 @@ export default function Webcam({
                         const context = newImage.getContext('2d');
                         if (!context) console.error('Failed to get context');
                         context?.drawImage(webcam.canvas, 0, 0);
-                        await onCapture(newImage);
+                        await callbacks.current.onCapture(newImage);
                     }
                     previousTimeRef.current = timestamp;
                 }
@@ -76,8 +72,8 @@ export default function Webcam({
                 const ctx = webcamRef.current?.getContext('2d');
                 if (ctx) {
                     ctx.drawImage(webcam.canvas, 0, 0);
-                    if (onPostprocess && webcamRef.current) {
-                        await onPostprocess(webcamRef.current);
+                    if (callbacks.current.onPostprocess && webcamRef.current) {
+                        await callbacks.current.onPostprocess(webcamRef.current);
                     }
                 }
             }
@@ -90,7 +86,7 @@ export default function Webcam({
         if (requestRef.current === -1) {
             requestRef.current = window.requestAnimationFrame(loopRef.current);
         }
-    }, [webcam, interval, capture, onCapture, direct, disable, onPostprocess, onPreprocess]);
+    }, [webcam, interval, capture, direct, disable]);
 
     const initWebcam = useCallback(
         async (newWebcam: WebcamClass) => {
@@ -116,10 +112,10 @@ export default function Webcam({
                 }
             }
 
-            if (onActivated) onActivated(true);
+            if (callbacks.current.onActivated) callbacks.current.onActivated(true);
             return newWebcam;
         },
-        [onActivated, facing, multiple]
+        [facing, multiple]
     );
 
     useEffect(() => {
@@ -127,18 +123,18 @@ export default function Webcam({
     }, [capture]);
 
     useEffect(() => {
-        const camera = new WebcamClass(size, size, true);
+        const camera = new WebcamClass(actualSize, actualSize, true);
         initWebcam(camera).catch((e) => {
-            if (onActivated) onActivated(false);
+            if (callbacks.current.onActivated) callbacks.current.onActivated(false);
             console.error('No webcam', e);
-            if (onFatal) onFatal();
+            if (callbacks.current.onFatal) callbacks.current.onFatal();
         });
         return () => {
             if (camera.webcam?.srcObject) {
                 camera.stop();
             }
         };
-    }, [facing, onActivated, initWebcam, onFatal, size]);
+    }, [facing, initWebcam, actualSize]);
 
     useEffect(() => {
         return () => {
@@ -181,8 +177,8 @@ export default function Webcam({
             {!webcam && (
                 <Skeleton
                     variant="rounded"
-                    width={size}
-                    height={size}
+                    width={actualSize}
+                    height={actualSize}
                 />
             )}
             {webcam && (
@@ -205,8 +201,8 @@ export default function Webcam({
                         aria-label={t('webcam.aria.video')}
                     >
                         <canvas
-                            width={size}
-                            height={size}
+                            width={actualSize}
+                            height={actualSize}
                             ref={webcamRef}
                         />
                     </div>
