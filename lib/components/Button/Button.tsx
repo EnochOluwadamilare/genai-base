@@ -5,6 +5,15 @@ export const Button = styled(MButton)({
     textTransform: 'none',
 });
 
+export const VerticalButton = styled(MButton)({
+    flexDirection: 'column',
+    padding: '5px 8px',
+    '& .MuiButton-startIcon': {
+        margin: '0',
+    },
+    textTransform: 'none',
+});
+
 export const LargeButton = styled(MButton)({
     textTransform: 'none',
     fontWeight: 'bold',

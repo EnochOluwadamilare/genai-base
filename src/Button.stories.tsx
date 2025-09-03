@@ -1,4 +1,4 @@
-import { BusyButton, Button, LargeButton } from '@base/main';
+import { BusyButton, Button, LargeButton, VerticalButton } from '@base/main';
 import { Story, StoryDefault } from '@ladle/react';
 import { Theme } from './decorators';
 import './style.css';
@@ -16,6 +16,15 @@ export const ButtonSecondary: Story = () => (
     >
         Hello
     </Button>
+);
+
+export const Vertical: Story = () => (
+    <VerticalButton
+        variant="contained"
+        color="secondary"
+    >
+        Hello
+    </VerticalButton>
 );
 
 export const Large: Story = () => (
