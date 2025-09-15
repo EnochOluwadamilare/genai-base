@@ -35,12 +35,14 @@ export const WorkflowOffsets: Story = () => (
             dataWidget="w1"
             title="Test 1"
             headerColour="pink"
+            data-active="false"
         >
             Hello
         </Widget>
         <Widget
             dataWidget="w2"
             title="Test 2"
+            data-active="false"
         >
             World
         </Widget>

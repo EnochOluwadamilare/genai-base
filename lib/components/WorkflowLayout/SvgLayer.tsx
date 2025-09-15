@@ -9,6 +9,7 @@ export interface ILine {
     id1: string;
     id2: string;
     annotationElement?: React.ReactNode;
+    active?: boolean;
 }
 
 interface Props {
@@ -33,7 +34,7 @@ export default function SvgLayer({ lines }: Props) {
                 const dx = line.direction === 'horizontal' ? Math.abs(line.x1 - line.x2) * CURVE : 0;
                 const dy = line.direction === 'vertical' ? Math.abs(line.y1 - line.y2) * CURVE : 0;
                 const size = Math.max(Math.abs(line.x1 - line.x2), Math.abs(line.y1 - line.y2));
-                const active = true; // activeLines.has(`${line.id1}-out`) && activeLines.has(`${line.id2}-in`);
+                const active = line.active;
                 return (
                     <g key={`annotation-${ix}`}>
                         <path

@@ -6,6 +6,7 @@ export interface INode {
     width: number;
     height: number;
     id: string;
+    active?: boolean;
 }
 
 const isTest = globalThis?.process?.env?.NODE_ENV === 'test';
@@ -23,12 +24,13 @@ export function extractNodesFromElements(div: HTMLElement, initial?: Map<string,
             if (!result.has(widgetType)) {
                 result.set(widgetType, []);
             }
+            const active = child.getAttribute('data-active') !== 'false';
             const width = child.offsetWidth;
             const height = child.offsetHeight;
             if (isTest || (width > 0 && height > 0)) {
                 result
                     .get(widgetType)
-                    ?.push({ x: child.offsetLeft, y: child.offsetTop, width, height, id: child.id || 'noid' });
+                    ?.push({ x: child.offsetLeft, y: child.offsetTop, width, height, id: child.id || 'noid', active });
             }
         }
     }
@@ -86,6 +88,7 @@ export function generateLines(data: Map<string, INode[]>, connections: IConnecti
                         connection.startPoint === 'top' || connection.startPoint === 'bottom'
                             ? 'vertical'
                             : 'horizontal',
+                    active: input.active && output.active,
                 });
             }
         }
