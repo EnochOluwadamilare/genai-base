@@ -2,6 +2,7 @@ import { Story, StoryDefault } from '@ladle/react';
 import { Theme } from './decorators';
 import './style.css';
 import { Widget, WorkflowLayout } from '@base/main';
+import { useEffect, useState } from 'react';
 
 export default {
     decorators: [Theme],
@@ -66,6 +67,45 @@ export const WorkflowSpaced: Story = () => (
         <Widget
             dataWidget="w2"
             title="Test 2"
+        >
+            World
+        </Widget>
+    </WorkflowLayout>
+);
+
+function AnimatedWidget(props: React.ComponentProps<typeof Widget>) {
+    const [active, setActive] = useState(false);
+    useEffect(() => {
+        const handle = setInterval(() => setActive((prev) => !prev), 1000);
+        return () => clearInterval(handle);
+    }, []);
+
+    return (
+        <Widget
+            {...props}
+            activated={active}
+        />
+    );
+}
+
+export const WorkflowActivated: Story = () => (
+    <WorkflowLayout
+        connections={[
+            { start: 'w1', end: 'w2', startPoint: 'right', endPoint: 'left', startOffset: -0.5, endOffset: 0.5 },
+        ]}
+    >
+        <AnimatedWidget
+            dataWidget="w1"
+            title="Test 1"
+            headerColour="pink"
+            style={{ marginRight: '100px' }}
+        >
+            Hello
+        </AnimatedWidget>
+        <Widget
+            dataWidget="w2"
+            title="Test 2"
+            activated={true}
         >
             World
         </Widget>

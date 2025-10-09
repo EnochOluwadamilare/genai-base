@@ -5,6 +5,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import MTextField from '@mui/material/TextField';
 import { styled } from '@mui/material/styles';
 import { useTranslation } from 'react-i18next';
+import { useLinesUpdate } from './svgContext';
 
 interface Props extends React.HTMLProps<HTMLDivElement> {
     title?: string;
@@ -17,6 +18,7 @@ interface Props extends React.HTMLProps<HTMLDivElement> {
     dataWidget?: string;
     'aria-label'?: string;
     active?: boolean;
+    activated?: boolean;
     id?: string;
     noPadding?: boolean;
     contentStyle?: CSSProperties;
@@ -43,6 +45,7 @@ export function Widget({
     id,
     noPadding,
     active,
+    activated = true,
     contentStyle,
     headerColour,
     ...props
@@ -51,6 +54,7 @@ export function Widget({
     const firstShow = useRef(true);
     const ref = useRef<HTMLElement>(null);
     const editRef = useRef<HTMLDivElement>(null);
+    const updateLines = useLinesUpdate();
 
     const classToUse = disabled ? style.widgetDisabled : active ? style.widgetActive : style.widget;
 
@@ -103,9 +107,14 @@ export function Widget({
         }
     }, [title, setTitle]);
 
+    useEffect(() => {
+        if (updateLines) updateLines();
+    }, [activated, updateLines]);
+
     return (
         <section
             {...props}
+            data-active={activated ? 'true' : 'false'}
             data-testid={`widget-${title}`}
             ref={ref}
             data-widget={dataWidget}

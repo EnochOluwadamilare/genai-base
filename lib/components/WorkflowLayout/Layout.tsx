@@ -1,7 +1,8 @@
-import { PropsWithChildren, useEffect, useRef, useState } from 'react';
+import { PropsWithChildren, useCallback, useEffect, useRef, useState } from 'react';
 import { extractNodesFromElements, generateLines, IConnection } from './lines';
 import SvgLayer, { ILine } from './SvgLayer';
 import style from './style.module.css';
+import { LinesUpdateContext } from './svgContext';
 
 interface Props extends PropsWithChildren {
     connections: IConnection[];
@@ -12,14 +13,18 @@ export default function WorkflowLayout({ children, connections }: Props) {
     const wkspaceRef = useRef<HTMLDivElement>(null);
     const observer = useRef<ResizeObserver>();
 
+    const forceUpdateLines = useCallback(() => {
+        const nodes = extractNodesFromElements(wkspaceRef.current as HTMLElement);
+        const lines = generateLines(nodes, connections);
+
+        setLines(lines);
+    }, [connections]);
+
     useEffect(() => {
         if (wkspaceRef.current) {
             const f = () => {
                 if (wkspaceRef.current) {
-                    const nodes = extractNodesFromElements(wkspaceRef.current as HTMLElement);
-                    const lines = generateLines(nodes, connections);
-
-                    setLines(lines);
+                    forceUpdateLines();
                 }
             };
             observer.current = new ResizeObserver(f);
@@ -38,22 +43,24 @@ export default function WorkflowLayout({ children, connections }: Props) {
                 observer.current?.disconnect();
             };
         }
-    }, [connections]);
+    }, [connections, forceUpdateLines]);
 
     return (
         <div className={style.workspace}>
-            <div
-                className={style.container}
-                ref={wkspaceRef}
-                style={{
-                    gridTemplateColumns: `repeat(${
-                        Array.isArray(children) ? children.filter((c) => !!c).length : 1
-                    }, max-content)`,
-                }}
-            >
-                <SvgLayer lines={lines} />
-                {children}
-            </div>
+            <LinesUpdateContext.Provider value={forceUpdateLines}>
+                <div
+                    className={style.container}
+                    ref={wkspaceRef}
+                    style={{
+                        gridTemplateColumns: `repeat(${
+                            Array.isArray(children) ? children.filter((c) => !!c).length : 1
+                        }, max-content)`,
+                    }}
+                >
+                    <SvgLayer lines={lines} />
+                    {children}
+                </div>
+            </LinesUpdateContext.Provider>
         </div>
     );
 }
