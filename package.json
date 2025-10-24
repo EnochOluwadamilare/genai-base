@@ -1,12 +1,12 @@
 {
-    "name": "@genai-fi/base",
+    "name": "@enoch-genai-fi/base",
     "version": "1.0.0",
     "license": "MIT",
     "type": "module",
     "main": "dist/main.js",
     "types": "dist/main.d.ts",
     "repository": {
-        "url": "https://github.com/knicos/genai-base.git",
+        "url": "https://github.com/enocholuwadamilare/genai-base.git",
         "type": "git"
     },
     "files": [
